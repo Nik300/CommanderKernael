@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="kernel" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Option virtualFolders="Headers/" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/kernel" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/kernel" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="Headers/core.hpp" />
+		<Unit filename="Headers/core/cpu/interrupts/idt.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Headers/core/cpu/interrupts/idt.h" />
+		<Unit filename="Headers/core/cpu/interrupts/interrupt.asm" />
+		<Unit filename="Headers/core/cpu/interrupts/isr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Headers/core/cpu/interrupts/isr.h" />
+		<Unit filename="Headers/drivers/driver.hpp" />
+		<Unit filename="Headers/drivers/keyboard.hpp" />
+		<Unit filename="Headers/environment.hpp" />
+		<Unit filename="Headers/keyboards/english.hpp" />
+		<Unit filename="Headers/keyboards/french.hpp" />
+		<Unit filename="Headers/keyboards/italian.hpp" />
+		<Unit filename="Headers/keyboards/languages.hpp" />
+		<Unit filename="Headers/ports.hpp" />
+		<Unit filename="Headers/shell.hpp" />
+		<Unit filename="Headers/stdio.hpp" />
+		<Unit filename="Headers/stdio/stdio.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Headers/stdio/stdio.h" />
+		<Unit filename="Headers/types.hpp" />
+		<Unit filename="Headers/util.hpp" />
+		<Unit filename="Headers/utility/ports.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Headers/utility/ports.h" />
+		<Unit filename="Headers/utility/types.h" />
+		<Unit filename="Headers/utility/util.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Headers/utility/util.h" />
+		<Unit filename="Sources/entry/kernel_entry.asm" />
+		<Unit filename="Sources/utility/ports.cpp" />
+		<Unit filename="kernel.cpp" />
+		<Extensions />
+	</Project>
+</CodeBlocks_project_file>
