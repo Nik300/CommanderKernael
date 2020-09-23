@@ -38,6 +38,7 @@ namespace CommanderKernael{
             bool record_input = false;
             bool shift = false;
             bool enabled = false;
+            int chars = 0;
         public:
             String _sc_names[58];
             String _sc_chars[58];
@@ -83,6 +84,12 @@ namespace CommanderKernael{
                 recorded_input = '\n';
                 if (this->record_input) this->record_input = false;
             }
+            void backspace(){
+            	if (chars == 0)return;
+            	console.printf_at(" ", console.cursor_x() - 1, console.cursor_y());
+            	console.set_cursor_x(console.cursor_x() - 1);
+            	chars--;
+            }
             void insert_shift(){
                 this->shift = true;
             }
@@ -99,10 +106,12 @@ namespace CommanderKernael{
             }
             string read_line(bool output = true){
                 int i = 0;
+                chars = 0;
                 bool _continue = true;
                 String dyn_char_array;
                 while(_continue){
                     char c = input_char(true);
+                    if (chars != i) i = chars;
                     if (c == '\n') {
                         _continue = false;
                         if (i == 0){
@@ -114,6 +123,7 @@ namespace CommanderKernael{
                     memset(0x00, (dyn_char_array + (i + 1)), 1);
                     dyn_char_array[i] = c;
                     i++;
+                    chars++;
                 }
                 string _ret = string("");
                 memset('\0', _ret._iterator, i+1);
@@ -138,7 +148,7 @@ namespace CommanderKernael{
                 if (CommanderKernael::keyboardSchemes::scelectedScheme._sc_names[(scancode - 0x80)] == "LShift" || CommanderKernael::keyboardSchemes::scelectedScheme._sc_names[(scancode - 0x80)] == "RShift") CommanderKernael::keyboardSchemes::scelectedScheme.release_shift();
                 if (scancode > 57) return;
                 if (scancode == ENTER) CommanderKernael::keyboardSchemes::scelectedScheme.printN();
-                else if (scancode == BACKSPACE) return;
+                else if (scancode == BACKSPACE) CommanderKernael::keyboardSchemes::scelectedScheme.backspace();
                 else if (scancode == ESC) return;
                 else if (CommanderKernael::keyboardSchemes::scelectedScheme._sc_names[(scancode)] == "LShift" || CommanderKernael::keyboardSchemes::scelectedScheme._sc_names[(scancode)] == "RShift") CommanderKernael::keyboardSchemes::scelectedScheme.insert_shift();
                 else CommanderKernael::keyboardSchemes::scelectedScheme.printChar(scancode);

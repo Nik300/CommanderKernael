@@ -8,6 +8,11 @@ using namespace assembly::types;
 extern "C" void clear_screen();
 extern "C" void kprint_at(char*, int, int);
 extern "C" void kprint(char*);
+extern "C" int get_cursor_offset();
+extern "C" void set_cursor_offset(int offset);
+extern "C" int get_offset(int col, int row);
+extern "C" int get_offset_row(int offset);
+extern "C" int get_offset_col(int offset);
 
 uint32_t ownership = 0x0000080;
 
@@ -82,6 +87,24 @@ namespace CommanderKernael{
 				void takeOwnership(){
 					ownership += 0x01;
 					this->ownership_code = ownership;
+				}
+				int cursor_x(){
+					return get_offset_col(get_cursor_offset());
+				}
+				int cursor_y(){
+					return get_offset_row(get_cursor_offset());
+				}
+				void set_cursor_x(int x){
+					if (this->ownership_code != ownership)return;
+					set_cursor_offset(get_offset(x, cursor_y()));
+				}
+				void set_cursor_y(int y){
+					if (this->ownership_code != ownership)return;
+					set_cursor_offset(get_offset(cursor_x(), y));
+				}
+				void set_cursor_pos(int x, int y){
+					if (this->ownership_code != ownership)return;
+					set_cursor_offset(get_offset(x, y));
 				}
 			};
             class string{
