@@ -88,6 +88,7 @@ namespace CommanderKernael{
             	if (chars == 0)return;
             	console.printf_at(" ", console.cursor_x() - 1, console.cursor_y());
             	console.set_cursor_x(console.cursor_x() - 1);
+                recorded_string._iterator[chars] = '\0';
             	chars--;
             }
             void insert_shift(){
@@ -115,8 +116,6 @@ namespace CommanderKernael{
                     if (c == '\n') {
                         _continue = false;
                         if (i == 0){
-                            memset(0x00, (dyn_char_array + (i + 1)), 1);
-                            dyn_char_array[i] = c;
                         }
                         break;
                     };

@@ -48,6 +48,8 @@ namespace CommanderKernael{
                         console.takeOwnership();
                         console.println("info: Sends infos about CommanderKernael");
                         console.println("help: Sends this message");
+                        console.println("panic: Causes a kernel panic");
+                        console.println("help: Sends this message");
                     }
                     else if(string("panic\0").compare(line)){
                         cpu::interrupts::call<2>();
@@ -55,14 +57,6 @@ namespace CommanderKernael{
                     else if(string("clear").compare(line)){
                         console.takeOwnership();
                         console.clear();
-                    }
-                    else if(string("ciao").compare(line)){
-                        console.takeOwnership();
-                        console.println("hey! come va?");
-                    }
-                    else if(string("caccapipi").compare(line)){
-                        console.takeOwnership();
-                        console.println("puzzetta");
                     }
                     else if(string("\n").compare(line)){
                     }

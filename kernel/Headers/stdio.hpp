@@ -123,13 +123,15 @@ namespace CommanderKernael{
                 bool compare(string string_to_compare){
                     String buffer_seg;
                     string_to_compare.get_frame_buffer_segment(buffer_seg);
-                    if (buffer_seg[sizeof(_iterator)] != string_to_compare.end_char) return false;
+                    if (buffer_seg[sizeof(_iterator) + 1] != string_to_compare.end_char) return false;
                     bool ret = true;
-                    for (int i = 0; i < sizeof(_iterator); i++){
-                        if (buffer_seg[i] != _iterator[i]){
+                    for (int i = 0; ; i++){
+                        if (buffer_seg[i] - _iterator[i] != 0){
                             ret = false;
                             break;
                         }
+						if (i == sizeof(_iterator) && i == sizeof(buffer_seg))
+							if (_iterator[sizeof(_iterator)+1] == end_char && buffer_seg[sizeof(buffer_seg)+1] == string_to_compare.end_char) break;
                     }
                     return ret;
                 }
