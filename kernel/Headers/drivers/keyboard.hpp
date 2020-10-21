@@ -27,6 +27,7 @@ using namespace CommanderKernael::utilities::ASCII_UTIL;
 using namespace CommanderKernael::utilities::memory;
 using namespace assembly::ports;
 using namespace assembly::types;
+using namespace CommanderKernael::core;
 
 namespace CommanderKernael{
     namespace keyboardSchemes{
@@ -46,7 +47,9 @@ namespace CommanderKernael{
             keyboardScheme(Console *console){
                 this->console = *console;
             }
-            keyboardScheme(){}
+            keyboardScheme(){
+                memset('\0', recorded_string._iterator, 20);
+            }
             ~keyboardScheme(){}
             void printChar(uint8_t code){
 				this->console.takeOwnership();
@@ -116,6 +119,7 @@ namespace CommanderKernael{
                     if (c == '\n') {
                         _continue = false;
                         if (i == 0){
+                            recorded_string._iterator += '\0';
                         }
                         break;
                     };
@@ -125,10 +129,11 @@ namespace CommanderKernael{
                     chars++;
                 }
                 string _ret = string("");
-                memset('\0', _ret._iterator, i+1);
+                memset('\0', _ret._iterator, i+2);
                 memcpy(recorded_string._iterator, _ret._iterator, i);
+                _ret.end_char = _ret._iterator[sizeof(_ret._iterator)];
+                memset('\0', recorded_string._iterator, sizeof(_ret._iterator));
                 recorded_string = string("");
-                memset('\0', recorded_string._iterator, i);
                 return _ret;
 			}
         };

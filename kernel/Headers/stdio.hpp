@@ -48,6 +48,15 @@ namespace CommanderKernael{
                         else kprint("false");
                     }
 				}
+				void printf(uint8_t key){
+                    if (this->ownership_code == ownership){
+                        char* foo = "00";
+                        char* hex = "0123456789ABCDEF";
+                        foo[0] = hex[(key >> 4) & 0xF];
+                        foo[1] = hex[key & 0xF];
+                        printf(foo);
+                    }
+				}
 				void println(){
 					if (this->ownership_code == ownership){
 						kprint("\n");
@@ -72,6 +81,15 @@ namespace CommanderKernael{
                         if (boolean) kprint("true");
                         else kprint("false");
                         kprint("\n");
+                    }
+				}
+				void println(uint8_t key){
+                    if (this->ownership_code == ownership){
+                        char* foo = "00";
+                        char* hex = "0123456789ABCDEF";
+                        foo[0] = hex[(key >> 4) & 0xF];
+                        foo[1] = hex[key & 0xF];
+                        println(foo);
                     }
 				}
 				void printf_at(String text, int x, int y){
@@ -123,7 +141,6 @@ namespace CommanderKernael{
                 bool compare(string string_to_compare){
                     String buffer_seg;
                     string_to_compare.get_frame_buffer_segment(buffer_seg);
-                    if (buffer_seg[sizeof(_iterator) + 1] != string_to_compare.end_char) return false;
                     bool ret = true;
                     for (int i = 0; ; i++){
                         if (buffer_seg[i] - _iterator[i] != 0){
