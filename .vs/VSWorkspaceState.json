@@ -1,0 +1,11 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\kernel",
+    "\\kernel\\Headers",
+    "\\kernel\\Headers\\drivers",
+    "\\kernel\\Headers\\drivers\\PCI"
+  ],
+  "SelectedNode": "\\kernel\\Headers",
+  "PreviewInSolutionExplorer": false
+}
