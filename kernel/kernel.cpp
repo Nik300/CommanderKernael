@@ -15,6 +15,7 @@
 #include <Headers/util.hpp>
 #include <Headers/stdio.hpp>
 #include <Headers/shell.hpp>
+#include <Headers/ports.hpp>
 
 using namespace CommanderKernael;
 using namespace core;
@@ -48,7 +49,6 @@ namespace CommanderKernael{
 				this->console.clear();
 				CommanderKernael::Environment::SystemUser::selection::preferredKeyboardScheme = CommanderKernael::keyboardSchemes::Italian(&this->console);
 				CommanderKernael::keyboardSchemes::scelectedScheme = CommanderKernael::Environment::SystemUser::selection::preferredKeyboardScheme;
-				CommanderKernael::Drivers::keyboardDriver kdriver = CommanderKernael::Drivers::keyboardDriver();
 				this->console.clear();
 				this->bootStatus = 2;
 				this->console.takeOwnership();
@@ -56,8 +56,6 @@ namespace CommanderKernael{
 				cpu::interrupts::install();
 				cpu::interrupts::enable();
 				this->console.println("[kernel] interrupts enabled!");
-				kdriver.activate();
-				this->console.println("[kernel] Keyboard driver enabled!");
 				shell _shell = shell(&this->console);
 				_shell.start();
 				this->hang();

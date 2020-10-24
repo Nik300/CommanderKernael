@@ -7,6 +7,9 @@ extern "C" void port_byte_out (unsigned short, unsigned char);
 //16bit ports
 extern "C" unsigned short port_word_in (unsigned short);
 extern "C" void port_word_out (unsigned short, unsigned short);
+//32bit ports
+extern "C" unsigned int port_int_in(unsigned short);
+extern "C" void port_int_out(unsigned short, unsigned int);
 
 namespace assembly{
 	namespace ports{
@@ -27,6 +30,15 @@ namespace assembly{
 			~port16bit();
 			virtual void write(unsigned short data);
 			virtual unsigned short read();
+		};
+		class port32bit{
+        private:
+            unsigned short port;
+        public:
+            port32bit(unsigned short port);
+			~port32bit();
+			virtual void write(unsigned int data);
+			virtual unsigned int read();
 		};
 	}
 }

@@ -8,10 +8,24 @@ namespace CommanderKernael{
 	namespace utilities{
 		namespace memory{
 			typedef char* content_t;
+			typedef unsigned short* content_short_t;
+			typedef unsigned int* content_int_t;
 			void memcpy(content_t source, content_t destination, int lenght){
-				memory_copy(source, destination, lenght);
+				for (int i = 0; i <= lenght; i++) if (*(destination + i) != *(source + i)) *(destination + i) = *(source + i);
 			}
 			void memset(uint8_t content, content_t destination, int lenght){
+                for (int i = 0; i <= lenght + 1; i++) *(destination + i) = content;
+			}
+			void memcpy(content_short_t source, content_short_t destination, int lenght){
+				for (int i = 0; i <= lenght; i++) if (*(destination + i) != *(source + i)) *(destination + i) = *(source + i);
+			}
+			void memset(uint16_t content, content_short_t destination, int lenght){
+                for (int i = 0; i <= lenght + 1; i++) *(destination + i) = content;
+			}
+			void memcpy(content_int_t source, content_int_t destination, int lenght){
+				for (int i = 0; i <= lenght; i++) if (*(destination + i) != *(source + i)) *(destination + i) = *(source + i);
+			}
+			void memset(uint32_t content, content_int_t destination, int lenght){
                 for (int i = 0; i <= lenght + 1; i++) *(destination + i) = content;
 			}
 		}

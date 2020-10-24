@@ -28,3 +28,14 @@ void port16bit::write(uint16_t data){
 	port_word_out(this->port, data);
 }
 
+//32bit
+port32bit::port32bit(uint16_t port){
+	this->port = port;
+}
+port32bit::~port32bit(){}
+uint32_t port32bit::read(){
+	return port_int_in(this->port);
+}
+void port32bit::write(uint32_t data){
+	port_int_out(this->port, data);
+}
