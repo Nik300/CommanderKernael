@@ -128,11 +128,15 @@ namespace CommanderKernael{
                     i++;
                     chars++;
                 }
+<<<<<<< HEAD
+                string _ret = string(recorded_string._iterator);
+=======
                 string _ret = string("");
                 memset('\0', _ret._iterator, i+2);
                 memcpy(recorded_string._iterator, _ret._iterator, i);
                 _ret.end_char = _ret._iterator[sizeof(_ret._iterator)];
                 memset('\0', recorded_string._iterator, sizeof(_ret._iterator));
+>>>>>>> 21ea778aacfb419a58f37175bff031c5c2721ccf
                 recorded_string = string("");
                 return _ret;
 			}
@@ -154,6 +158,8 @@ namespace CommanderKernael{
                 if (scancode == ENTER) CommanderKernael::keyboardSchemes::scelectedScheme.printN();
                 else if (scancode == BACKSPACE) CommanderKernael::keyboardSchemes::scelectedScheme.backspace();
                 else if (scancode == ESC) return;
+                else if (CommanderKernael::keyboardSchemes::scelectedScheme._sc_names[(scancode)] == "Lctrl") return;
+                else if (CommanderKernael::keyboardSchemes::scelectedScheme._sc_names[(scancode)] == "LAlt") return;
                 else if (CommanderKernael::keyboardSchemes::scelectedScheme._sc_names[(scancode)] == "LShift" || CommanderKernael::keyboardSchemes::scelectedScheme._sc_names[(scancode)] == "RShift") CommanderKernael::keyboardSchemes::scelectedScheme.insert_shift();
                 else CommanderKernael::keyboardSchemes::scelectedScheme.printChar(scancode);
             }

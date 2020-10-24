@@ -19,7 +19,11 @@ namespace CommanderKernael{
                     class BAR{
                     public:
                         bool prefetchable;
+<<<<<<< HEAD
+                        unsigned int address;
+=======
                         unsigned char* address;
+>>>>>>> 21ea778aacfb419a58f37175bff031c5c2721ccf
                         unsigned int size;
                         BARType type;
                     };
@@ -59,7 +63,13 @@ namespace CommanderKernael{
                         bool DeviceHasFunction(PCIDevice* device);
 
                         void SelectDrivers(Console console);
+<<<<<<< HEAD
+                        void EnableMemory(bool memory, PCIDevice* device);
                         PCIDevice GetDevice(unsigned short bus, unsigned short device, unsigned short function);
+                        PCIDevice RequireDevice(unsigned short vendor_id, unsigned short device_id);
+=======
+                        PCIDevice GetDevice(unsigned short bus, unsigned short device, unsigned short function);
+>>>>>>> 21ea778aacfb419a58f37175bff031c5c2721ccf
                         BAR GetBaseAddressReg(PCIDevice* device, unsigned short bar);
                     };
                 }
@@ -116,12 +126,28 @@ void PCIController::SelectDrivers(Console console){
                 }
 
                 switch (dev.vendor_id){
+<<<<<<< HEAD
+                    default:
+                        console.printf("Unknown device found at (bus-device-function-vendor_id-device_id-revision): ");
+=======
                     case 0x1234:
                         console.printf("RedHat device found at (bus-device-function): ");
+>>>>>>> 21ea778aacfb419a58f37175bff031c5c2721ccf
                         console.printf((unsigned char)(dev.bus & 0xFF));
                         console.printf("-");
                         console.printf((unsigned char)(dev.device & 0xFF));
                         console.printf("-");
+<<<<<<< HEAD
+                        console.printf((unsigned char)(dev.function & 0xFF));
+                        console.printf("-");
+                        console.printf((unsigned char)((dev.vendor_id & 0xFF00) >> 8));
+                        console.printf((unsigned char)(dev.vendor_id & 0xFF));
+                        console.printf("-");
+                        console.printf((unsigned char)((dev.device_id & 0xFF00) >> 8));
+                        console.printf((unsigned char)(dev.device_id & 0xFF));
+                        console.printf("-");
+                        console.println((unsigned char)(dev.revision));
+=======
                         console.println((unsigned char)(dev.function & 0xFF));
                         break;
                         break;
@@ -132,6 +158,7 @@ void PCIController::SelectDrivers(Console console){
                         console.printf((unsigned char)(dev.device & 0xFF));
                         console.printf("-");
                         console.println((unsigned char)(dev.function & 0xFF));
+>>>>>>> 21ea778aacfb419a58f37175bff031c5c2721ccf
                         break;
                 }
             }
@@ -139,6 +166,33 @@ void PCIController::SelectDrivers(Console console){
     }
 }
 
+<<<<<<< HEAD
+PCIDevice PCIController::RequireDevice(unsigned short vendor_id, unsigned short device_id){
+    for (int bus = 0; bus < 8; bus++){
+        for (int device = 0; device < 32; device++){
+            PCIDevice dev = PCIDevice();
+            dev.device = device;
+            dev.bus = bus;
+            int numFunctions = DeviceHasFunction(&dev) ? 1 : 8;
+            for (int function = 0; function < numFunctions; function++){
+                dev = GetDevice(bus, device, function);
+
+                if (dev.vendor_id == 0x0000 || dev.vendor_id == 0xFFFF) continue;
+
+                for (int barNum = 0; barNum < 6; barNum++){
+                    BAR bar = GetBaseAddressReg(&dev, barNum);
+                    if (bar.address && (bar.type == InputOutput)) dev.portBase = (unsigned int)bar.address;
+                }
+
+                if (dev.device_id == device_id && dev.vendor_id == vendor_id) return dev;
+            }
+        }
+    }
+    return PCIDevice();
+}
+
+=======
+>>>>>>> 21ea778aacfb419a58f37175bff031c5c2721ccf
 BAR PCIController::GetBaseAddressReg(PCIDevice* device, unsigned short bar){
     BAR result;
 
@@ -151,16 +205,31 @@ BAR PCIController::GetBaseAddressReg(PCIDevice* device, unsigned short bar){
     unsigned int temp;
 
     if (result.type == MemoryMapping){
+<<<<<<< HEAD
+        result.prefetchable = (unsigned short)((bar_value >> 3) & 0x01);
+        switch ((bar_value >> 1) & 0x03)
+        {
+            case 0: 
+                result.address = bar_value & 0xFFFFFFF0;
+                break;
+            case 1:
+                result.address = bar_value & 0xFFFFFFF0;
+=======
         switch ((bar_value >> 1) & 0x03)
         {
             case 0: //32bit
             case 1: //20bit
             case 2: //64bit
+>>>>>>> 21ea778aacfb419a58f37175bff031c5c2721ccf
                 break;
         }
     }
     else{
+<<<<<<< HEAD
+        result.address = bar_value & 0xFFFFFFFC;
+=======
         result.address = (unsigned char*)(bar_value & ~0x3);
+>>>>>>> 21ea778aacfb419a58f37175bff031c5c2721ccf
         result.prefetchable = false;
     }
 
@@ -186,4 +255,19 @@ PCIDevice PCIController::GetDevice(unsigned short bus, unsigned short device, un
 
     return result;
 }
+<<<<<<< HEAD
+
+void PCIController::EnableMemory(bool memory, PCIDevice* device){
+    unsigned short command = (unsigned short)(Read(device, 0x04));
+    unsigned short flags = 0x0007;
+
+    if (memory)
+        command |= flags;
+    else
+        command &= (unsigned short)~flags;
+
+    Write(device, 0x04, (unsigned int)command);
+}
+=======
+>>>>>>> 21ea778aacfb419a58f37175bff031c5c2721ccf
 #endif //__COMMANDERKERNAEL_CORE_HAL_SUPPORTS_PCI

@@ -129,11 +129,17 @@ namespace CommanderKernael{
             private:
                 Console _console = Console();
             public:
-                String _iterator = 0x0000;
+                String _iterator;
                 char end_char;
                 string(String text){
-                    end_char = text[sizeof(text) + 1];
-                    _iterator = text;
+					_iterator = (char*)(0x9100 + (int)text);
+					for (int i = 0; i <= sizeof(text)+7; i++){
+						_iterator[i] = '\0';
+					}
+					for (int i = 0; i <= sizeof(text)+7; i++){
+						_iterator[i] = text[i];
+					}
+                    end_char = _iterator[sizeof(_iterator) + 1];
                 }
                 void get_frame_buffer_segment(String buffer_segment){
                     buffer_segment = _iterator;
@@ -147,7 +153,7 @@ namespace CommanderKernael{
                             ret = false;
                             break;
                         }
-						if (i == sizeof(_iterator) && i == sizeof(buffer_seg))
+						if (i == sizeof(_iterator) + (sizeof(_iterator) - 4) && i == sizeof(buffer_seg) + (sizeof(_iterator) - 4))
 							if (_iterator[sizeof(_iterator)+1] == end_char && buffer_seg[sizeof(buffer_seg)+1] == string_to_compare.end_char) break;
                     }
                     return ret;
