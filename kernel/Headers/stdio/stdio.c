@@ -10,6 +10,8 @@ int get_offset(int col, int row);
 int get_offset_row(int offset);
 int get_offset_col(int offset);
 
+char color = WHITE_ON_BLACK;
+
 /**********************************************************
  * Public Kernel API functions                            *
  **********************************************************/
@@ -18,6 +20,14 @@ int get_offset_col(int offset);
  * Print a message on the specified location
  * If col, row, are negative, we will use the current offset
  */
+
+void changeBColor(char ncolor) {
+    color = (ncolor << 4) | (color & 0xF);
+}
+void changeFColor(char ncolor) {
+    color = (color & 0xF0) | (ncolor & 0xF);
+}
+
 void kprint_at(char *message, int col, int row) {
     /* Set cursor if col/row are negative */
     int offset;
@@ -32,7 +42,10 @@ void kprint_at(char *message, int col, int row) {
     /* Loop through message and print it */
     int i = 0;
     while (message[i] != 0) {
-        offset = print_char(message[i++], col, row, WHITE_ON_BLACK);
+        if (message[i] != ' ')
+            offset = print_char(message[i++], col, row, color);
+        else
+            offset = print_char(message[i++], col, row, (color & 0xF0) | 0x0f);
         /* Compute row/col for next iteration */
         row = get_offset_row(offset);
         col = get_offset_col(offset);
@@ -59,7 +72,7 @@ void kprint(char *message) {
  */
 int print_char(char c, int col, int row, char attr) {
     unsigned char *vidmem = (unsigned char*) VIDEO_ADDRESS;
-    if (!attr) attr = WHITE_ON_BLACK;
+    if (!attr) attr = color;
 
     /* Error control: print a red 'E' if the coords aren't right */
     if (col >= MAX_COLS || row >= MAX_ROWS) {
@@ -121,6 +134,11 @@ void set_cursor_offset(int offset) {
     port_byte_out(REG_SCREEN_DATA, (unsigned char)(offset & 0xff));
 }
 
+void disable_cursor() {
+    port_byte_out(REG_SCREEN_CTRL, 0x0A);
+    port_byte_out(REG_SCREEN_DATA, 0x20);
+}
+
 void clear_screen() {
     int screen_size = MAX_COLS * MAX_ROWS;
     int i;
@@ -128,7 +146,7 @@ void clear_screen() {
 
     for (i = 0; i < screen_size; i++) {
         screen[i*2] = ' ';
-        screen[i*2+1] = WHITE_ON_BLACK;
+        screen[i*2+1] = (color & 0xF0) | 0x0f;
     }
     set_cursor_offset(get_offset(0, 0));
 }

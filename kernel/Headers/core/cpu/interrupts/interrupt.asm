@@ -31,22 +31,40 @@ isr_common_stub:
 ; Common IRQ code. Identical to ISR code except for the 'call' 
 ; and the 'pop ebx'
 irq_common_stub:
-    pusha 
+    push eax
+    push ecx
+    push edx
+    push ebx
+    push ebp
+    push esi
+    push edi
+
     mov ax, ds
     push eax
-    mov ax, 0x10
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
+    ;mov ax, 0x10
+    ;mov ds, ax
+    ;mov es, ax
+    ;mov fs, ax
+    ;mov gs, ax
+    push esp
     call irq_handler ; Different than the ISR code
+    pop esp
     pop ebx  ; Different than the ISR code
-    mov ds, bx
-    mov es, bx
-    mov fs, bx
-    mov gs, bx
-    popa
+    ;mov ds, bx
+    ;mov es, bx
+    ;mov fs, bx
+    ;mov gs, bx
+
+    pop edi
+    pop esi
+    pop ebp
+    pop ebx
+    pop edx
+    pop ecx
+    pop eax
+
     add esp, 8
+    ;jmp $
     sti
     iret 
 	

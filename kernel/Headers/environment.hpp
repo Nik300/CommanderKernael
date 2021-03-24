@@ -2,7 +2,7 @@
 //This file has been licensed by GNU-GPL
 //All rights reserved. (C)2020
 //Only contributors are authorized to modify/redistribute
-//this files.
+//these files
 
 //See CONTRIBUTORS.TXT for more infos
 
@@ -25,7 +25,7 @@ namespace CommanderKernael{
     namespace Environment{
         namespace SystemUser{
             namespace selection{
-                static CommanderKernael::keyboardSchemes::keyboardScheme preferredKeyboardScheme;
+                static CommanderKernael::keyboardSchemes::keyboardScheme* preferredKeyboardScheme;
                 static String name = "System authority";
                 static String username = "systemauthorityservice";
             }

@@ -2,7 +2,7 @@
 //This file has been licensed by GNU-GPL
 //All rights reserved. (C)2020
 //Only contributors are authorized to modify/redistribute
-//this files.
+//these files
 
 //See CONTRIBUTORS.TXT for more infos
 
@@ -34,7 +34,7 @@ namespace CommanderKernael{
 			};
 			String chars[58] = {
                         "", "", "1", "2", "3", "4", "5", "6",
-                        "7", "8", "9", "0", "'", "ì", "", "", "q", "w", "e", "r", "t", "y",
+                        "7", "8", "9", "0", "'", "ì", "", "\t", "q", "w", "e", "r", "t", "y",
                 		"u", "i", "o", "p", "è", "+", "", "", "a", "s", "d", "f", "g",
                 		"h", "j", "k", "l", "ò", "à", "ù", "", "<", "z", "x", "c", "v",
                 		"b", "n", "m", ",", ".", "-", "", "", "", " "
@@ -52,11 +52,9 @@ namespace CommanderKernael{
 
 CommanderKernael::keyboardSchemes::Italian::Italian(Console* console)
 :CommanderKernael::keyboardSchemes::keyboardScheme(console){
-	for (int i = 0; i < 58; i++){
-		this->_sc_names[i] = this->names[i];
-		this->_sc_chars[i] = this->chars[i];
-		this->_sc_caps_chars[i] = this->caps_chars[i];
-	}
+    this->_sc_chars = this->chars;
+    this->_sc_names = this->names;
+    this->_sc_caps_chars = this->caps_chars;
 }
 
 #endif //__COMMANDERKERNAEL_KEYBOARDSCHEMES_ITALIAN

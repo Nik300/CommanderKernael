@@ -2,7 +2,7 @@
 //This file has been licensed by GNU-GPL
 //All rights reserved. (C)2020
 //Only contributors are authorized to modify/redistribute
-//this files.
+//these files
 
 //See CONTRIBUTORS.TXT for more infos
 
@@ -25,7 +25,7 @@ namespace CommanderKernael{
         public:
             String name = "notSet";
             isr_t handler;
-            static void disabled(registers_t regs){
+            static void disabled(uint32_t* regs){
                 return;
             }
             bool active = false;

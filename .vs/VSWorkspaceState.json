@@ -3,9 +3,12 @@
     "",
     "\\kernel",
     "\\kernel\\Headers",
-    "\\kernel\\Headers\\drivers",
-    "\\kernel\\Headers\\drivers\\PCI"
+    "\\kernel\\Headers\\Graphics",
+    "\\kernel\\Headers\\keyboards",
+    "\\kernel\\Headers\\stdio",
+    "\\kernel\\libc",
+    "\\kernel\\Sources"
   ],
-  "SelectedNode": "\\kernel\\Headers",
+  "SelectedNode": "\\kernel\\Headers\\shell.hpp",
   "PreviewInSolutionExplorer": false
 }

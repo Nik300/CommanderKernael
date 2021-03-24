@@ -1,0 +1,44 @@
+Table Entry
+    : Partitions number (uint32_t)
+    : First Partition
+        > Sector
+        > Position in sector
+    : Table Name
+        > String entry
+            : Size
+        > Name
+
+Partition Entry
+    : Partition ID (random value)
+    : Partition number
+    : Partition size (sectors)
+    : Partition Flags (uint32_t)
+        > first byte: 0=Not Hidden, 1=Hidden
+        > second byte: 0=R, 1=R/W
+        > third byte: 0=Data, 1=Temp App Container, 2=System
+    : Partition name
+        > String entry
+            : Size
+        > Name
+    : Content
+        > Directory entry
+            : Path
+                > String entry
+                    : Size
+                > Path
+            : First file in chain entry
+                > Sector
+                > Position in sector
+        > File entry
+            : Size
+            : File Name
+                > String entry
+                    : Size
+                > File Name
+            : Content
+                > Content in bytes
+            : Next chain item entry
+                > Null: ?true/false
+                > Sector
+                > Position in sector
+                

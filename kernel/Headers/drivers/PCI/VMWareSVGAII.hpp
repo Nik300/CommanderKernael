@@ -141,12 +141,13 @@ namespace CommanderKernael{
                     PCIController controller = PCIController();
 					uint32_t* Video_Memory;
 					bool enabled = false;
-					uint32_t* FIFO_Memory;
+					int32_t* FIFO_Memory;
 					PCIDevice device = controller.RequireDevice(0x15AD, 0x0405);
 					port32bit IndexPort = port32bit((uint16_t)(device.portBase + IOPortOffset::Index));
 					port32bit ValuePort = port32bit((uint16_t)(device.portBase + IOPortOffset::Value));
 					port32bit BiosPort = port32bit((uint16_t)(device.portBase + IOPortOffset::Bios));
 					port32bit IRQPort = port32bit((uint16_t)(device.portBase + IOPortOffset::IRQ));
+					int pitch;
 					uint32_t capabilities;
 					uint32_t* buffer;
 					bool buffered;
@@ -180,7 +181,7 @@ namespace CommanderKernael{
 						return ValuePort.read();
 					}
 					void InitializeFIFO(){
-						FIFO_Memory = (uint32_t*)(ReadRegister(Register::MemStart));
+						FIFO_Memory = (int32_t*)(ReadRegister(Register::MemStart));
 						FIFO_Memory[(uint32_t)FIFO::Min] = (uint32_t)Register::FifoNumRegisters * sizeof(uint32_t);
 						FIFO_Memory[(uint32_t)FIFO::Max] = (uint32_t)ReadRegister(Register::MemSize);
 						FIFO_Memory[(uint32_t)FIFO::NextCmd] = FIFO_Memory[(uint32_t)FIFO::Min];
@@ -197,30 +198,39 @@ namespace CommanderKernael{
 						 c |= b;
 						 return c;
 					}
-					void SetMode(uint32_t width, uint32_t height, uint32_t depth = 32, bool buffered = false)
+					void SetMode(uint32_t width, uint32_t height, uint32_t depth = 32, bool buffered = true)
 					{
 						this->depth = (depth / 8);
 						this->width = width;
 						this->height = height;
 						this->real_depth = depth;
 						this->buffered = buffered;
+						if (buffered){
+							int8_t PixelStride = (depth | 7) >> 3;
+							this->pitch = width * PixelStride;
+							this->buffer = (uint32_t*)(height*this->pitch);
+						}
 						WriteRegister(Register::Width, width);
 						WriteRegister(Register::Height, height);
 						WriteRegister(Register::BitsPerPixel, depth);
-						WriteRegister(Register::Enable, 1);
 						InitializeFIFO();
+					}
+					void UpdateMode(){
+						WriteRegister(Register::Width, width);
+						WriteRegister(Register::Height, height);
+						WriteRegister(Register::BitsPerPixel, real_depth);
 					}
 					uint32_t GetFifo(FIFO cmd){
 						return FIFO_Memory[(uint32_t)cmd];
 					}
-					void SetFifo(FIFO cmd, uint32_t value){
-						FIFO_Memory[(uint32_t)cmd] = value;
+					void SetFifo(FIFO cmd, int32_t value){
+						FIFO_Memory[(int32_t)cmd] = value;
 					}
 					void WaitForFIFO(){
 						WriteRegister(Register::Sync, 1);
 						while (ReadRegister(Register::Busy) != 0);
 					}
-					void WriteToFIFO(uint32_t _value){
+					void WriteToFIFO(int32_t _value){
 						if (((GetFifo(FIFO::NextCmd) == GetFifo(FIFO::Max) - 4) && GetFifo(FIFO::Stop) == GetFifo(FIFO::Min)) ||
 						   (GetFifo(FIFO::NextCmd) + 4 == GetFifo(FIFO::Stop)))
 							WaitForFIFO(); 
@@ -231,8 +241,8 @@ namespace CommanderKernael{
 						if (GetFifo(FIFO::NextCmd) == GetFifo(FIFO::Max))
 							SetFifo(FIFO::NextCmd, GetFifo(FIFO::Min));
 					}
-					void Update(uint32_t x, uint32_t y, uint32_t _width, uint32_t _height){
-						WriteToFIFO(((uint32_t)FIFOCommand::Update));
+					void Update(int32_t x, int32_t y, int32_t _width, int32_t _height){
+						WriteToFIFO(((int32_t)FIFOCommand::Update));
 						WriteToFIFO(x);
 						WriteToFIFO(y);
 						WriteToFIFO(_width);
@@ -242,11 +252,17 @@ namespace CommanderKernael{
 					void SetPixel(uint32_t x, uint32_t y, uint32_t color){
 						if (!enabled) WriteRegister(Register::Enable, 0);
 						if (!buffered){
-							Video_Memory[((y * width + x))] = color;
+							if (Video_Memory[((y * width + x))] != color)
+								Video_Memory[((y * width + x))] = color;
+						}
+						else{
+							if (buffer[width*y+x] != color)
+								buffer[width*y+x] = color;
 						}
 					}
 					void Render(){
-						SetMode(this->width, this->height, this->real_depth);
+						if (buffered) memcpy(buffer, Video_Memory, height*this->pitch);
+						this->Update(0, 0, this->width, this->height);
 					}
 					uint32_t GetPixel(uint32_t x, uint32_t y){
 						return Video_Memory[((y * width + x) * depth)];
@@ -264,6 +280,9 @@ namespace CommanderKernael{
 						}
 						else{
 						}
+					}
+					void Activate(){
+						WriteRegister(Register::Enable, 1);
 					}
 					void Deactivate(){
 						Console console = Console();

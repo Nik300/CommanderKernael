@@ -1,6 +1,12 @@
 #include "Headers/core/cpu/interrupts/idt.h"
 #include "Headers/utility/util.h"
 
+
+#define IDT_ENTRIES 256
+idt_gate_t idt[IDT_ENTRIES];
+idt_register_t idt_reg;
+
+
 uint16_t low_16(uint32_t content){
 	return (content & 0xFFFF);
 }

@@ -1,1 +1,1 @@
-nasm bootloader/bootsect.asm -o compiled/bootloader/bootloader.bin
+nasm bootsect.asm -o compiled/bootloader/bootloader.bin

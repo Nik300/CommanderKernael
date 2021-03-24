@@ -2,7 +2,7 @@
 //This file has been licensed by GNU-GPL
 //All rights reserved. (C)2020
 //Only contributors are authorized to modify/redistribute
-//this files.
+//these files
 
 //See CONTRIBUTORS.TXT for more infos
 
@@ -26,7 +26,7 @@ namespace CommanderKernael{
 			~French(){}
 			String names[58] = {
                 		"", "Échap", "1", "2", "3", "4", "5", "6",
-                		"7", "8", "9", "0", "°", "+", "Backspace", "Tab", "A", "Z", "E",//SONO ANDATO A CENA E MI SONO FERMATO QUI
+                		"7", "8", "9", "0", "°", "+", "Backspace", "Tab", "A", "Z", "E",
                 		"R", "T", "Y", "U", "I", "O", "P", "è", "+", "Enter", "Lctrl",
                 		"A", "S", "D", "F", "G", "H", "J", "K", "L", "ò", "à", "ù",
                 		"LShift", "<", "Z", "X", "C", "V", "B", "N", "M", ",", ".",
@@ -45,10 +45,9 @@ namespace CommanderKernael{
 
 CommanderKernael::keyboardSchemes::French::French(Console* console)
 :CommanderKernael::keyboardSchemes::keyboardScheme(console){
-	for (int i = 0; i < 58; i++){
-		this->_sc_names[i] = this->names[i];
-		this->_sc_chars[i] = this->chars[i];
-	}
+    this->_sc_chars = this->_chars;
+    this->_sc_names = this->_names;
+    this->_sc_caps_chars = this->_caps_chars;
 }
 
 #endif //__COMMANDERKERNAEL_KEYBOARDSCHEMES_FRENCH
