@@ -7,7 +7,6 @@
 #include <lib/memory.h>
 #include <lib/serial.h>
 #define GET_OFFSET(x,y, MAX_COLS) (2 * ((y) * (MAX_COLS) + (x)))
-
 void *stdio = (void*)0xb8000;
 System::IO::ConsoleColor fg = System::IO::ConsoleColor::White;
 System::IO::ConsoleColor bg = System::IO::ConsoleColor::Black;
@@ -92,7 +91,7 @@ namespace System::IO
 			else
 			{
 				uint8_t color = ((uint8_t)bg << 4) | (uint8_t)fg;
-				this->buffer[GET_OFFSET(cursor.get_x(), cursor.get_y(), columns)/2] = color;
+				this->buffer[GET_OFFSET(cursor.get_x()+1, cursor.get_y(), columns) -1] = color;
 				this->buffer[GET_OFFSET(cursor.get_x(), cursor.get_y(), columns)] = buffer[i];
 				cursor.moveX(cursor.get_x() + 1);
 				if (GET_OFFSET(cursor.get_x(), cursor.get_y(), columns) >= 2*(rows * columns))
@@ -251,6 +250,18 @@ namespace System::IO
 		va_end(args);
 		return chars_written;
 	}
+	int Console::Write(ConsoleColor Color,const char* text, ...)
+	{
+		
+		ConsoleColor CurrentColor = GetFG();
+		SetFG(Color);
+		va_list args;
+		va_start(args, text);
+		int chars_written = WriteV(text,args);
+		va_end(args);
+		SetFG(CurrentColor);
+		return chars_written;
+	}
 	int Console::WriteLine(const char* text, ...)
 	{
 		va_list args;
@@ -399,7 +410,7 @@ namespace System::IO
 		va_end(args);
 		console.write("\n", 1);
 		chars_written++;
-		//SetFG(CurrentColor);
+		SetFG(CurrentColor);
 		return chars_written;
 	}
 	const char* Console::ReadLine()

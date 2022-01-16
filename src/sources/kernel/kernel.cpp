@@ -62,14 +62,13 @@ namespace System::Kernel
 		Console::Clear();
 		page_modules();
 
-		Console::WriteLine(ConsoleColor::Red,"[%s] %s Booted successfully!",name, OSName);
+		Console::WriteLine(ConsoleColor::Yellow,"[%s] %s Booted successfully!",name, OSName);
 		Console::WriteLine("[%s] Version: %s", name, version);
 		Console::WriteLine("[%s] Kernel heap: 0x%x", name, KernelHeap.GetDataBuffer());
 		Console::WriteLine("[%s] Kernel heap size: %dMB", name, KernelHeap.GetSize()/1024/1024);
 		Console::WriteLine("[%s] Kernel heap used: %d bytes", name, KernelHeap.GetUsedSize());
 		Console::WriteLine("[%s] Kernel heap free: %dMB", name, KernelHeap.GetFreeSize()/1024/1024);
 		Console::WriteLine("[%s] Modules count: %d", name, multiboot_data->mods_count);
-
 		KernelProc = ProcessManager::Create(0, 0, KProc, PrivilegeLevel::Kernel, get_kernel_dir());
 		KernelProc->SigRun();
 		Console::WriteLine("[%s] Kernel PID: %d", name, KernelProc->GetPID());
