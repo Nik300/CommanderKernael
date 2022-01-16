@@ -35,19 +35,6 @@ namespace System::Kernel
 	KeyboardDriver *Keyboard;
 	Process *KernelProc;
 
-	void UserProcTest(char *argv[], int argc)
-	{
-		printf("Hello, world!\n");
-	}
-
-	void KProc(char *argv[], int argc)
-	{
-		//Process *proc = ProcessManager::Create(0, 0, UserProcTest, PrivilegeLevel::User);
-		//proc->SigRun();
-		//Keyboard->Activate();
-		while (1);
-	}
-
 	void begin()
 	{
 		KernelHeap = Heap(&kheap, kheap_size);
@@ -76,11 +63,6 @@ namespace System::Kernel
 		Console::WriteLine("[%s] Kernel heap free: %dMB", name, KernelHeap.GetFreeSize()/1024/1024);
 		Console::WriteLine("[%s] Modules count: %d", name, multiboot_data->mods_count);
 
-		page_map_addr_sz((uintptr_t)get_module(0), (uintptr_t)get_module(0), get_module_size(0));
-		dprintf("%x, %d\n", get_module(0), get_module_size(0));
-		elf32_load(get_module(0), get_module_size(0), 3);
-
-		//Console::WriteLine("[%s] Kernel PID: %d", name, KernelProc->GetPID());
 		while (1);
 	}
 }

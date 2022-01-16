@@ -317,14 +317,26 @@ namespace System::Tasking
 			ProcessManager::processes_count++;
 			proc = &ProcessManager::processes_heap[0];
 		}
-		else if (ProcessManager::processes_free < ProcessManager::processes_used)
+		else if (ProcessManager::processes_free > ProcessManager::processes_used)
 		{
+			printf("test %d/%d\n", ProcessManager::processes_free, ProcessManager::processes_used);
 			proc = ProcessManager::GetFreeProcEntry();
 			ProcessManager::processes_free--;
 			ProcessManager::processes_used++;
 		}
 		else
 		{
+			page_map_addr_sz((uintptr_t)&ProcessManager::processes_heap[ProcessManager::processes_count], (uintptr_t)&ProcessManager::processes_heap[ProcessManager::processes_count], sizeof(Process), (page_table_entry_t){
+				.present = true,
+				.rw = read_write,
+				.privilege = supervisor,
+				.reserved_1 = 0,
+				.accessed = false,
+				.dirty = false,
+				.reserved_2 = 0,
+				.free = false,
+				.unused = 0,
+			});
 			proc = &ProcessManager::processes_heap[ProcessManager::processes_count];
 			ProcessManager::processes_count++;
 			ProcessManager::processes_used++;
@@ -422,7 +434,7 @@ namespace System::Tasking
 				
 				if (log)
 				{
-					dprintf("[ProcessManager] Switching to process %d\n", proc->GetPID());
+					dprintf("[ProcessManager] Switching to process %d/%d\n", proc->GetPID()+1, ProcessManager::processes_count);
 					dprintf("[ProcessManager] CS: 0x%x, DS: 0x%x, SS: 0x%x\n", r->cs, r->ds, r->ss);
 				}
 				
