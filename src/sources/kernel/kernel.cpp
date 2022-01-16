@@ -51,11 +51,11 @@ namespace System::Kernel
 		ProcessManager::Init();
 		ProcessManager::ToggleLog();
 	}
-	void run(const char* version, const char* name)
+	void run(const char* version, const char* name,const char* OSName)
 	{
 		Console::Clear();
 
-		Console::WriteLine("[%s] Booted successfully!", name);
+		Console::WriteLine(ConsoleColor::Yellow,"[%s] %s Booted successfully!",name, OSName);
 		Console::WriteLine("[%s] Version: %s", name, version);
 		Console::WriteLine("[%s] Kernel heap: 0x%x", name, KernelHeap.GetDataBuffer());
 		Console::WriteLine("[%s] Kernel heap size: %dMB", name, KernelHeap.GetSize()/1024/1024);

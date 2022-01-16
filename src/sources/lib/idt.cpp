@@ -215,8 +215,7 @@ const char* exceptions[] = {
 
 extern "C" void fault_handler(regs32_t regs)
 {
-	asm ("cli");
-
+	asm volatile ("cli");
 	__tss.esp0 = (uintptr_t)regs.esp;
 
 	using System::IO::Console;
@@ -243,8 +242,8 @@ extern "C" void fault_handler(regs32_t regs)
 	// send eoi
 	outb(0x20, 0x20);
 
-	asm("hlt");
-	while (1);
+	asm volatile ("hlt");
+	for(;;);
 }
 extern "C" void interrupt_handler(regs32_t regs)
 {
