@@ -5,10 +5,6 @@
 %macro isr 1
 	[global isr_%1]
 	isr_%1:
-		xchg bx, bx ; bochs breakpoint
-		;push isr_%1
-		;call set_kernel_code
-		
 		push dword %1
 		
 		push eax
@@ -53,7 +49,6 @@
 		add esp, 4
 
 		sti
-
 		iret
 %endmacro
 %macro irq 1
@@ -159,5 +154,5 @@ common_irq_stub:
 
 	add esp, 4
 
-	;sti
+	sti
 	iret

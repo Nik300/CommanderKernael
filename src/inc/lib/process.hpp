@@ -87,7 +87,7 @@ namespace System::Tasking
 		static Process 	*GetFreeProcEntry();
 
 	public:
-		static Process *Create(uint32_t vaddr, uint32_t paddr, ProcessEntry entry, PrivilegeLevel privilege);
+		static Process *Create(uint32_t vaddr, uint32_t paddr, ProcessEntry entry, PrivilegeLevel privilege, page_dir_t *dir = nullptr);
 		static void Destroy(Process *process);
 		static void Destroy(uint32_t pid);
 	public:

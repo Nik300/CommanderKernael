@@ -296,7 +296,7 @@ namespace System::Tasking
 		return proc;
 	}
 
-	Process *ProcessManager::Create(uint32_t vaddr, uint32_t paddr, ProcessEntry entry, PrivilegeLevel privilege)
+	Process *ProcessManager::Create(uint32_t vaddr, uint32_t paddr, ProcessEntry entry, PrivilegeLevel privilege, page_dir_t *dir)
 	{
 		Process *proc;
 		if (ProcessManager::processes_count == 0)
@@ -332,6 +332,8 @@ namespace System::Tasking
 		proc->Init(vaddr, paddr, entry, privilege);
 		proc->pid = ProcessManager::next_pid++;
 
+		if (dir) { proc->dir = dir; goto done; }
+		
 		page_init_dir(proc->dir);
 		
 		page_map_addr_dir_sz((uint32_t)proc, (uint32_t)proc, proc->dir, sizeof(Process), (page_table_entry_t){
@@ -346,7 +348,7 @@ namespace System::Tasking
 			.unused = 0,
 		});
 
-		return proc;
+		done: return proc;
 	}
 	void ProcessManager::Destroy(Process *process)
 	{
