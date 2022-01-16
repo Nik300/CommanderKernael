@@ -27,8 +27,6 @@ __cdecl bool page_modules()
 	void *first_mod = (void*)mods[0];
 	void *last_mod = (void*)mods[mods_count - 1];
 
-	dprintf("%x, %x\n", first_mod, last_mod);
-
 	for (uintptr_t i = (uintptr_t)first_mod; i <= mem_align((void*)last_mod) + 0x1000; i += 0x1000)
 	{
 		page_map_addr(i, i, { present: true, rw: read_write, privilege: supervisor, 0, accessed: false, dirty: true });
@@ -46,11 +44,19 @@ __cdecl void run_module(size_t indx)
 }
 __cdecl void *get_module(size_t indx)
 {
+	if (indx > multiboot_data->mods_count)
+	{
+		return nullptr;
+	}
 	uintptr_t *mods = (uintptr_t*)multiboot_data->mods_addr;
 	return (void*)mods[indx];
 }
 __cdecl size_t get_module_size(size_t indx)
 {
+	if (indx > multiboot_data->mods_count)
+	{
+		return 0;
+	}
 	uintptr_t *mods = (uintptr_t*)multiboot_data->mods_addr;
 	return (size_t)mods[indx + 1] - (size_t)mods[indx];
 }

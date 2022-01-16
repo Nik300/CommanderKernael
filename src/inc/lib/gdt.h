@@ -121,48 +121,6 @@ extern tss_entry_struct_t *tss_sect;
 extern tss_entry_struct_t __tss;
 extern void *kstack_top;
 
-static inline void set_tss()
-{
-	uint32_t base = (uint32_t) &__tss;
-	uint32_t limit = sizeof(tss_entry_struct_t);
- 
-	gdt32_table[TSS_INDEX].base_low = base & 0xFFFF;
-	gdt32_table[TSS_INDEX].base_middle = (base >> 16) & 0xFF;
-	gdt32_table[TSS_INDEX].base_high = (base >> 24) & 0xFF;
-
-	gdt32_table[TSS_INDEX].limit_low = limit & 0xFFFF;
-	gdt32_table[TSS_INDEX].limit_high = (limit >> 16) & 0x0F;
-
-	// Add a TSS descriptor to the GDT.
-	gdt32_table[TSS_INDEX].accessed = 1; // With a system entry (`code_data_segment` = 0), 1 indicates TSS and 0 indicates LDT
-	gdt32_table[TSS_INDEX].read_write = 0; // For a TSS, indicates busy (1) or not busy (0).
-	gdt32_table[TSS_INDEX].conforming_direction = 0; // always 0 for TSS
-	gdt32_table[TSS_INDEX].executable = 1; // For a TSS, 1 indicates 32-bit (1) or 16-bit (0).
-	gdt32_table[TSS_INDEX].type=0; // indicates TSS/LDT (see also `accessed`)
-	gdt32_table[TSS_INDEX].privilege_level = 0; // ring 0, see the comments below
-	gdt32_table[TSS_INDEX].present = 1;
-	gdt32_table[TSS_INDEX].reserved = 0; // 0 for a TSS
-	gdt32_table[TSS_INDEX].long_mode = 0;
-	gdt32_table[TSS_INDEX].size = (gdt32_size_bit)0; // should leave zero according to manuals.
-	gdt32_table[TSS_INDEX].granularity = (gdt32_granularity_bit)0; // limit is in bytes, not pages
- 
-	memset(&__tss, 0, sizeof(tss_entry_struct_t));
-
-	__tss.ss0  = (KERNEL_DATA_INDEX * 8) | 0;
-	__tss.ss1  = (MODULE_DATA_INDEX * 8) | 1;
-	__tss.ss2  = (DRIVER_DATA_INDEX * 8) | 2;
-	
-	int esp;
-	asm volatile("mov %%esp, %0" : "=r"(esp));
-
-	__tss.esp0 = (uint32_t) esp;
-	__tss.cs = 0x8;
-	__tss.ds = 0x10;
-	__tss.es = 0x10;
-	__tss.fs = 0x10;
-	__tss.gs = 0x10;
-	__tss.ss = 0x10;
-}
 static inline void set_ldr()
 {
 	
@@ -341,8 +299,36 @@ static inline void init_entries()
 		.granularity = GDT32_ALIGN_4K
 	});
 
+	// set TSS
+	set_descriptor(TSS_INDEX, (uint32_t)&__tss, sizeof(tss_entry_struct_t), (gdt32_entry_access_t)
+	{
+		.accessed = 1,
+		.read_write = 0,
+		.conforming_direction = 0,
+		.executable = 1,
+		.type = 0,
+		.privilege_level = 0,
+		.present = 1
+	}, (gdt32_entry_flags_t){
+		.reserved = 0,
+		.long_mode = 0,
+		.size = GDT32_16BIT,
+		.granularity = GDT32_ALIGN_1B
+	});
+		memset(&__tss, 0, sizeof(tss_entry_struct_t));
 
-	set_tss();
+	__tss.ss0  = (KERNEL_DATA_INDEX * 8) | 0;
+	__tss.ss1  = (MODULE_DATA_INDEX * 8) | 1;
+	__tss.ss2  = (DRIVER_DATA_INDEX * 8) | 2;
+	int esp;
+	asm volatile("mov %%esp, %0" : "=r"(esp));
+	__tss.esp0 = (uint32_t) esp;
+	__tss.cs = 0x8;
+	__tss.ds = 0x10;
+	__tss.es = 0x10;
+	__tss.fs = 0x10;
+	__tss.gs = 0x10;
+	__tss.ss = 0x10;
 }
 
 extern void *gdt_table;

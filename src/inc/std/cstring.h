@@ -14,7 +14,7 @@ static inline int strlen(const char* str)
 	while (str[len] != '\0') len++;
 	return len;
 }
-static inline int numlen(int num)
+static inline int numlen(uint32_t num)
 {
 	int len = 0;
 	while (num > 0)
@@ -334,7 +334,7 @@ static inline int strnum(const char* str, int base)
 	}
 	return ret;
 }
-static inline char* numstr(int num, int base)
+static inline char* numstr(uint32_t num, int base)
 {
 	if (num == 0) 
 	{
@@ -363,7 +363,7 @@ static inline char* numstr(int num, int base)
 	strrev(str);
 	return str;
 }
-static inline char* numstr_buf(int num, int base, char* buf)
+static inline char* numstr_buf(uint32_t num, int base, char* buf)
 {
 	if (num == 0) 
 	{

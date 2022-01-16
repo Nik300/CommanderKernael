@@ -162,7 +162,6 @@ bool idt32_init()
 
 	// install syscall handler
 	register_int_handler(16, [](regs32_t *r){
-		printf("ustack: %x\n", r->useresp);
 		switch (r->eax)
 		{
 			case 0:
@@ -216,6 +215,8 @@ const char* exceptions[] = {
 
 extern "C" void fault_handler(regs32_t regs)
 {
+	asm ("cli");
+
 	__tss.esp0 = (uintptr_t)regs.esp;
 
 	using System::IO::Console;
@@ -242,8 +243,8 @@ extern "C" void fault_handler(regs32_t regs)
 	// send eoi
 	outb(0x20, 0x20);
 
-	asm volatile ("hlt");
-	
+	asm("hlt");
+	while (1);
 }
 extern "C" void interrupt_handler(regs32_t regs)
 {

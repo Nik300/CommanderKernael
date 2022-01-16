@@ -26,7 +26,6 @@
 			mov es, ax
 			mov fs, ax
 			mov gs, ax
-			mov ss, ax
 		
 		call fault_handler
 
@@ -132,7 +131,6 @@ common_irq_stub:
 		mov es, ax
 		mov fs, ax
 		mov gs, ax
-		;mov ss, ax
 
 	call interrupt_handler
 	

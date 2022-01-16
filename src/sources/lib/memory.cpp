@@ -171,14 +171,12 @@ extern "C" void cfree(void *buff)
 
 	DataEntry *info = (DataEntry*)((uintptr_t)buff-sizeof(DataEntry));
 
-	if (!info->magic) return;
+	if (info->magic != MAGIC) { dprintf("[SYSTEM] Free: magic %x is not valid\n", info->magic); return; }
 
 	info->state_flags.used = false;
 	info->state_flags.collect = false;
 
-	if (info->sz % 4) memsetl(buff, 0, info->sz);
-	else if (info->sz % 2) memsetw(buff, 0, info->sz);
-	else memset(buff, 0, info->sz);
+	memset(buff, 0, info->sz);
 
 	dprintf("[SYSTEM] Freed %d bytes at 0x%x\n", info->sz, info);
 }
