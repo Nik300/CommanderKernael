@@ -1,6 +1,7 @@
 CXX=i686-elf-g++
 CC=i686-elf-gcc
 LD=i686-elf-ld
+NAME=StormOS
 CXXFLAGS=-Isrc/inc -fno-use-cxa-atexit -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti -Wno-write-strings -Wno-unused-variable -w -Wno-narrowing -Wno-sign-compare -Wno-type-limits -Wno-unused-parameter -Wno-missing-field-initializers
 CFLAGS=-Isrc/inc -fno-use-cxa-atexit -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti -Wno-write-strings -Wno-unused-variable -w -Wno-narrowing -Wno-sign-compare -Wno-type-limits -Wno-unused-parameter -Wno-missing-field-initializers
 NASM=nasm
@@ -37,14 +38,14 @@ grub:
 	cp -r $(MODULES) isoroot/mods
 	cp kernel.bin isoroot/boot
 	cp src/grub/grub.cfg isoroot/boot/grub
-	grub-mkrescue -o Commander.iso isoroot -V "Commander"
+	grub-mkrescue -o $(NAME).iso isoroot -V "Commander"
 
 %.mod: %.sh
 	bash $<
 	
 run:
-	qemu-system-i386 -cdrom Commander.iso -serial stdio -vga std -no-reboot -no-shutdown -m 1G
+	qemu-system-i386 -cdrom $(NAME).iso -serial stdio -vga std -no-reboot -no-shutdown -m 1G
 run-kvm:
-	qemu-system-i386 -cdrom Commander.iso -serial stdio -vga std -no-reboot -no-shutdown -m 1G -enable-kvm
+	qemu-system-i386 -cdrom $(NAME).iso -serial stdio -vga std -no-reboot -no-shutdown -m 1G -enable-kvm
 run-bochs:
 	/usr/local/bin/bochs -q -f bochsrc.txt
