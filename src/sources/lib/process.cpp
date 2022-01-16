@@ -281,6 +281,7 @@ namespace System::Tasking
 	uint32_t ProcessManager::processes_used = 0;
 	uint32_t ProcessManager::current_thread = 0;
 	uint32_t ProcessManager::next_pid = 0;
+	bool 	 ProcessManager::log = true;
 
 	Process *ProcessManager::GetFreeProcEntry()
 	{
@@ -333,7 +334,7 @@ namespace System::Tasking
 		proc->pid = ProcessManager::next_pid++;
 
 		if (dir) { proc->dir = dir; goto done; }
-		
+
 		page_init_dir(proc->dir);
 		
 		page_map_addr_dir_sz((uint32_t)proc, (uint32_t)proc, proc->dir, sizeof(Process), (page_table_entry_t){
@@ -409,20 +410,21 @@ namespace System::Tasking
 				r->esi = proc->regs.esi;
 				r->edi = proc->regs.edi;
 				r->ebp = proc->regs.ebp;
-				//r->esp = proc->regs.esp;
+				
 				if(proc->privilege == PrivilegeLevel::User) r->useresp = proc->regs.esp;
 				r->eip = proc->regs.eip;
 
 				r->cs = proc->regs.cs;
 				r->ds = proc->regs.ds;
 
-				asm ("xchg %bx, %bx");
-
 				r->eflags = proc->regs.eflags;
 				r->ss = proc->regs.ss;
 				
-				dprintf("[ProcessManager] Switching to process %d\n", proc->GetPID());
-				dprintf("[ProcessManager] CS: 0x%x, DS: 0x%x, SS: 0x%x\n", r->cs, r->ds, r->ss);
+				if (log)
+				{
+					dprintf("[ProcessManager] Switching to process %d\n", proc->GetPID());
+					dprintf("[ProcessManager] CS: 0x%x, DS: 0x%x, SS: 0x%x\n", r->cs, r->ds, r->ss);
+				}
 				
 				r->identifier.interrupt_number = proc->regs.identifier.interrupt_number;
 			}
@@ -438,5 +440,9 @@ namespace System::Tasking
 		ProcessManager::next_pid = 0;
 		ProcessManager::processes_heap = (Process *)procs_addr;
 		register_int_handler(0, ProcessManager::SwitchProcess);
+	}
+	void ProcessManager::ToggleLog()
+	{
+		ProcessManager::log = !ProcessManager::log;
 	}
 }

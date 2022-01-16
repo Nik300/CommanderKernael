@@ -83,6 +83,7 @@ namespace System::Tasking
 		static uint32_t processes_used;
 		static uint32_t current_thread;
 		static uint32_t next_pid;
+		static bool 	log;
 	private:
 		static Process 	*GetFreeProcEntry();
 
@@ -93,5 +94,6 @@ namespace System::Tasking
 	public:
 		static void SwitchProcess(regs32_t *regs);
 		static void Init();
+		static void ToggleLog();
 	};
 }

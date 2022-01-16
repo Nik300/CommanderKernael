@@ -162,6 +162,7 @@ bool idt32_init()
 
 	// install syscall handler
 	register_int_handler(16, [](regs32_t *r){
+		printf("ustack: %x\n", r->useresp);
 		switch (r->eax)
 		{
 			case 0:

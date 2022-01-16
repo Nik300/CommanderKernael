@@ -55,6 +55,7 @@ namespace System::Kernel
 		Keyboard = new KeyboardDriver();
 		Keyboard->Init();
 		ProcessManager::Init();
+		ProcessManager::ToggleLog();
 	}
 	void run(const char* version, const char* name)
 	{
@@ -71,6 +72,8 @@ namespace System::Kernel
 
 		KernelProc = ProcessManager::Create(0, 0, KProc, PrivilegeLevel::Kernel, get_kernel_dir());
 		KernelProc->SigRun();
+
+		Console::WriteLine("[%s] Kernel PID: %d", name, KernelProc->GetPID());
 
 		Keyboard->Activate();
 		while (1);
