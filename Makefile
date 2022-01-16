@@ -6,11 +6,11 @@ CXXFLAGS=-Isrc/inc -fno-use-cxa-atexit -ffreestanding -O2 -Wall -Wextra -fno-exc
 CFLAGS=-Isrc/inc -fno-use-cxa-atexit -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti -Wno-write-strings -Wno-unused-variable -w -Wno-narrowing -Wno-sign-compare -Wno-type-limits -Wno-unused-parameter -Wno-missing-field-initializers
 NASM=nasm
 ASFLAGS=-felf32
-CXX_SOURCES=$(shell find src -name '*.cpp')
-C_SOURCES=$(shell find src -name '*.c')
-LINK_SOURCES=$(shell find src -name '*.o')
-MODULES=$(shell find ./mods -name '*.mod')
-MODULES_COMPILE=$(shell find ./mods -name '*.sh')
+CXX_SOURCES=$(shell find src -name '*.cpp' -not -path "initrd/*")
+C_SOURCES=$(shell find src -name '*.c' -not -path "initrd/*")
+LINK_SOURCES=$(shell find src -name '*.o' -not -path "initrd/*")
+MODULES=$(shell find ./mods -name '*.mod' -not -path "initrd/*")
+MODULES_COMPILE=$(shell find ./mods -name '*.sh' -not -path "initrd/*")
 MODULES_OUTPUT=$(MODULES_COMPILE:.sh=.mod)
 CPP_FILES_OUT = $(CXX_SOURCES:.cpp=.o)
 C_FILES_OUT = $(C_SOURCES:.c=.o)
@@ -47,6 +47,9 @@ grub:
 run:
 	qemu-system-i386 -cdrom $(NAME).iso -serial stdio -vga std -no-reboot -no-shutdown -m 1G
 run-kvm:
-	qemu-system-i386 -cdrom $(NAME).iso -serial stdio -vga std -no-reboot -no-shutdown -m 1G -enable-kvm
+	qemu-system-i386 -cdrom $(NAME).iso -serial stdio -vga std -no-reboot -no-shutdown -m 1G -enable-kvm -cpu host
 run-bochs:
 	/usr/local/bin/bochs -q -f bochsrc.txt
+
+initrd:
+    tar czf  initrd.tar.gz -C initrd/ ./ --format=ustar
