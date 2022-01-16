@@ -53,3 +53,6 @@ run-bochs:
 
 initrd:
     tar czf  initrd.tar.gz -C initrd/ ./ --format=ustar
+    
+initrd_files:
+	make -C initrd/
