@@ -75,16 +75,10 @@ namespace System::Kernel
 		Console::WriteLine("[%s] Kernel heap used: %d bytes", name, KernelHeap.GetUsedSize());
 		Console::WriteLine("[%s] Kernel heap free: %dMB", name, KernelHeap.GetFreeSize()/1024/1024);
 		Console::WriteLine("[%s] Modules count: %d", name, multiboot_data->mods_count);
-<<<<<<< HEAD
 
 		page_map_addr_sz((uintptr_t)get_module(0), (uintptr_t)get_module(0), get_module_size(0));
 		dprintf("%x, %d\n", get_module(0), get_module_size(0));
 		elf32_load(get_module(0), get_module_size(0), 3);
-=======
-		KernelProc = ProcessManager::Create(0, 0, KProc, PrivilegeLevel::Kernel, get_kernel_dir());
-		KernelProc->SigRun();
-		Console::WriteLine("[%s] Kernel PID: %d", name, KernelProc->GetPID());
->>>>>>> 321f0a3 (Implement Console Colors Writing)
 
 		//Console::WriteLine("[%s] Kernel PID: %d", name, KernelProc->GetPID());
 		while (1);
