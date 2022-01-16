@@ -99,12 +99,17 @@ namespace System::IO
 		static ConsoleStream console;
 	public:
 		static int WriteLine(const char* text, ...);
+		static int WriteLine(ConsoleColor color,const char* text, ...);
 		static int Write(const char* text, ...);
 		static int WriteV(const char* text, va_list args);
 		static const char* ReadLine();
 		static void Clear();
 		static void Clear(ConsoleColor fg, ConsoleColor bg);
 		static void Init(void *io = stdio);
+		static ConsoleColor GetFG();
+		static ConsoleColor GetBG();
+		static void SetFG(ConsoleColor Color);
+		static void SetBG(ConsoleColor Color);
 	};
 }
 #endif

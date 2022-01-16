@@ -8,7 +8,7 @@ namespace System::Kernel
 	extern System::Memory::Heap KernelHeap;
 
 	void begin();
-	void run(const char* version, const char* name);
+	void run(const char* version, const char* name, const char* OSName);
 }
 
 extern "C" {
