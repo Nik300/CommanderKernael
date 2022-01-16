@@ -46,6 +46,7 @@
 	pheap:
 		.space PHEAP_SZ
 	pheap_e:
+	
 .section .data
     .global kstack_size
 	.global kheap_size
@@ -66,7 +67,6 @@
 	gdt_table: .space GDTTB_SZ
 	tss_sect:  .space TSS_SZ
 	procs_addr: .long processes
-    errmsg: .ascii "Error: Kernel failed to initialize.\0"
 	
 
 /*
@@ -94,11 +94,7 @@
 		// now we can call main
 		call main
 
-		hlt
-
-	_err:
-		push $errmsg
-		call on_error
+		// halt the kernel if main returns
 		hlt
 
 .section .end

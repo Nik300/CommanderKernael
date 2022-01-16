@@ -91,7 +91,7 @@ namespace System::IO
 			else
 			{
 				uint8_t color = ((uint8_t)bg << 4) | (uint8_t)fg;
-				this->buffer[GET_OFFSET(cursor.get_x()+1, cursor.get_y(), columns) -1] = color;
+				this->buffer[GET_OFFSET(cursor.get_x(), cursor.get_y(), columns)+1] = color;
 				this->buffer[GET_OFFSET(cursor.get_x(), cursor.get_y(), columns)] = buffer[i];
 				cursor.moveX(cursor.get_x() + 1);
 				if (GET_OFFSET(cursor.get_x(), cursor.get_y(), columns) >= 2*(rows * columns))

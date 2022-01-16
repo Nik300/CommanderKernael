@@ -35,6 +35,7 @@ clean_objects:
 grub:
 	mkdir -p isoroot/boot/grub
 	mkdir -p isoroot/mods
+	echo "test" >> isoroot/mods/test_txt.mod
 	cp -r $(MODULES) isoroot/mods
 	cp kernel.bin isoroot/boot
 	cp src/grub/grub.cfg isoroot/boot/grub

@@ -60,7 +60,7 @@ __cdecl uint32_t elf32_load(void *data, size_t size, uint8_t privilege)
 			dprintf("[%s] 	Flags: %d\n", "ELF", prog_hdr[i].flags);
 			dprintf("[%s] 	Align: %d\n", "ELF", prog_hdr[i].align);
 
-			page_map_addr_sz((uint32_t)mem_align(prog_data), prog_hdr[i].vaddr, size+0x2000, {present: true, rw: read_write, privilege: user, reserved_1: (0), accessed: false, dirty: false});
+			page_map_addr_sz((uint32_t)mem_align(prog_data), prog_hdr[i].vaddr, prog_hdr[i].filesz+0x2000, {present: true, rw: read_write, privilege: user, reserved_1: (0), accessed: false, dirty: false});
 			page_map_addr_dir_sz((uint32_t)mem_align(prog_data), prog_hdr[i].vaddr, proc->GetDir(), size+0x2000, {present: true, rw: read_write, privilege: user, reserved_1: (0), accessed: false, dirty: false});
 
 			memcpy((void*)mem_align(prog_data), (uint8_t*)data+prog_hdr[i].offset, size + 0x1000);
