@@ -6,11 +6,11 @@
 #include <lib/ports.h>
 #include <lib/memory.h>
 #include <lib/serial.h>
-
-#define GET_OFFSET(x,y, MAX_COLS) 2 * ((y) * (MAX_COLS) + (x))
+#define GET_OFFSET(x,y, MAX_COLS) (2 * ((y) * (MAX_COLS) + (x)))
 
 void *stdio = (void*)0xb8000;
-
+System::IO::ConsoleColor fg = System::IO::ConsoleColor::White;
+System::IO::ConsoleColor bg = System::IO::ConsoleColor::Black;
 __cdecl int print(const char* text)
 {
 	using System::IO::Console;
@@ -91,6 +91,8 @@ namespace System::IO
 			}
 			else
 			{
+				uint8_t color = ((uint8_t)bg << 4) | (uint8_t)fg;
+				this->buffer[GET_OFFSET(cursor.get_x(), cursor.get_y(), columns)+1] = color;
 				this->buffer[GET_OFFSET(cursor.get_x(), cursor.get_y(), columns)] = buffer[i];
 				cursor.moveX(cursor.get_x() + 1);
 				if (GET_OFFSET(cursor.get_x(), cursor.get_y(), columns) >= 2*(rows * columns))
@@ -323,6 +325,83 @@ namespace System::IO
 		chars_written++;
 		return chars_written;
 	}
+	int Console::WriteLine(ConsoleColor color,const char* text, ...)
+	{
+		ConsoleColor CurrentColor = GetFG();
+		SetFG(color);
+		va_list args;
+		va_start(args, text);
+		int chars_written = 0;
+		for (int i = 0; i < strlen(text); i++)
+		{
+			if (text[i] == '%')
+			{
+				i++;
+				if (text[i] == 'd')
+				{
+					char *buf = decstr(va_arg(args, int));
+					console.write(buf, strlen(buf));
+					chars_written += strlen(buf);
+					free(buf);
+				}
+				else if (text[i] == 's')
+				{
+					char* value = va_arg(args, char*);
+					console.write(value, strlen(value));
+					chars_written += strlen(value);
+				}
+				else if (text[i] == 'c')
+				{
+					char value = va_arg(args, int);
+					console.write(&value, 1);
+					chars_written += 1;
+				}
+				else if (text[i] == 'h')
+				{
+					char* value = hexstr(va_arg(args, int));
+					console.write(value, strlen(value));
+					chars_written += strlen(value);
+					free(value);
+				}
+				else if (text[i] == 'x')
+				{
+					char* value = hexstr(va_arg(args, int));
+					console.write(value, strlen(value));
+					chars_written += strlen(value);
+					free(value);
+				}
+				else if (text[i] == 'b')
+				{
+					char* value = binstr(va_arg(args, int));
+					console.write(value, strlen(value));
+					chars_written += strlen(value);
+					free(value);
+				}
+				else if (text[i] == 'o')
+				{
+					char* value = octstr(va_arg(args, double));
+					console.write(value, strlen(value));
+					chars_written += strlen(value);
+					free(value);
+				}
+				else if (text[i] == '%')
+				{
+					console.write("%", 1);
+					chars_written++;
+				}
+			}
+			else
+			{
+				console.write(&text[i], 1);
+				chars_written++;
+			}
+		}
+		va_end(args);
+		console.write("\n", 1);
+		chars_written++;
+		SetFG(CurrentColor);
+		return chars_written;
+	}
 	const char* Console::ReadLine()
 	{
 		return nullptr;
@@ -330,7 +409,8 @@ namespace System::IO
 	void Console::Clear()
 	{
 		console.cursor.move(0, 0);
-		memsetw(console.buffer, 0x0F00, 2*(console.columns*console.rows));
+		uint8_t color = ((uint8_t)bg << 4) | (uint8_t)fg;
+		memsetw(console.buffer, color << 8, 2*(console.columns*console.rows));
 	}
 	void Console::Clear(ConsoleColor fg, ConsoleColor bg)
 	{
@@ -340,6 +420,8 @@ namespace System::IO
 	}
 	void Console::Init(void *io)
 	{
+		fg = ConsoleColor::White;
+		bg = ConsoleColor::Black;
 		console = ConsoleStream();
 		console.buffer = reinterpret_cast<char*>(io);
 		console.columns = 80;
@@ -384,6 +466,24 @@ namespace System::IO
 	{
 		this->x = x;
 		move(x, y);
+	}
+	#pragma endregion
+	#pragma region COLORS
+	ConsoleColor Console::GetFG()
+	{
+		return fg;
+	}
+	ConsoleColor Console::GetBG()
+	{
+		return bg;
+	}
+	void Console::SetFG(ConsoleColor Color)
+	{
+		fg = Color;
+	}
+	void Console::SetBG(ConsoleColor Color)
+	{
+		bg = Color;
 	}
 	#pragma endregion
 }
