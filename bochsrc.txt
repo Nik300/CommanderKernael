@@ -1,0 +1,26 @@
+#romimage: file=/usr/share/bochs/BIOS-bochs-legacy
+plugin_ctrl: unmapped=true, biosdev=true, speaker=true, extfpuirq=true, parallel=true, serial=true
+memory: host=1024, guest=1024
+display_library: x, options="gui_debug"
+ata0-master:  type=cdrom, path="Commander.iso", status=inserted
+boot: cdrom
+log: bochsout.txt
+magic_break: enabled=1
+port_e9_hack: enabled=0
+pci: enabled=1, chipset=i440fx
+vga: extension=vbe, update_freq=5, realtime=1
+clock: sync=realtime, time0=local, rtc_sync=0
+logprefix: %t%e%d
+debug: action=ignore
+info: action=report
+error: action=ask
+panic: action=ask
+keyboard: type=mf, serial_delay=250, paste_delay=100000, user_shortcut=none
+mouse: type=ps2, enabled=true, toggle=ctrl+mbutton
+speaker: enabled=true, mode=system
+parport1: enabled=true, file=none
+parport2: enabled=false
+com1: enabled=true, mode=file, dev=/dev/stdout
+com2: enabled=false
+com3: enabled=false
+com4: enabled=false
