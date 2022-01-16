@@ -188,3 +188,10 @@ __cdecl void *memcpy(void *dest, const void *src, size_t count)
 	else memcpy(dest, src, count);
 	return dest;
 }
+__cdecl void *memset(void *dest, int data, size_t count)
+{
+	if (count % 4 == 0) memsetl(dest, data, count);
+	else if (count % 2 == 0) memsetw(dest, data, count);
+	else memset(dest, data, count);
+	return dest;
+}

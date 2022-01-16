@@ -250,11 +250,10 @@ namespace System::IO
 		va_end(args);
 		return chars_written;
 	}
-	int Console::Write(ConsoleColor Color,const char* text, ...)
+	int Console::Write(ConsoleColor color, const char* text, ...)
 	{
-		
 		ConsoleColor CurrentColor = GetFG();
-		SetFG(Color);
+		SetFG(color);
 		va_list args;
 		va_start(args, text);
 		int chars_written = WriteV(text,args);
@@ -336,7 +335,7 @@ namespace System::IO
 		chars_written++;
 		return chars_written;
 	}
-	int Console::WriteLine(ConsoleColor color,const char* text, ...)
+	int Console::WriteLine(ConsoleColor color, const char* text, ...)
 	{
 		ConsoleColor CurrentColor = GetFG();
 		SetFG(color);

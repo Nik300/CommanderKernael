@@ -440,6 +440,12 @@ namespace System::Tasking
 				
 				r->identifier.interrupt_number = proc->regs.identifier.interrupt_number;
 			}
+			else if (proc->HasExited() || proc->HasCrashed())
+			{
+				ProcessManager::Destroy(proc);
+				if (log) dprintf("[ProcessManager] Process %d/%d has exited\n", proc->GetPID()+1, ProcessManager::processes_count);
+				goto loop;
+			}
 			else { i++; goto loop; }
 		started = true;
 	}
@@ -456,5 +462,9 @@ namespace System::Tasking
 	void ProcessManager::ToggleLog()
 	{
 		ProcessManager::log = !ProcessManager::log;
+	}
+	Process *ProcessManager::GetCurrentProcess()
+	{
+		return &ProcessManager::processes_heap[ProcessManager::current_thread];
 	}
 }

@@ -5,6 +5,7 @@
 #include <std/stdio.h>
 #include <lib/serial.h>
 #include <init/modules.h>
+#include <lib/process.hpp>
 
 #define LOW_16(x) (uint16_t)(x & 0xFFFF)
 #define HIGH_16(x) (uint16_t)(x >> 16)
@@ -167,6 +168,12 @@ bool idt32_init()
 			case 0:
 				printf((char*)r->ebx);
 				break;
+			case 1:
+				using namespace System::Tasking;
+				// exit system call
+				page_switch_dir(get_kernel_dir());
+				__reload_regs();
+				ProcessManager::Destroy(ProcessManager::GetCurrentProcess());
 			default:
 				r->eax = -1;
 		}

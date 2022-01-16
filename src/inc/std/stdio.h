@@ -99,9 +99,9 @@ namespace System::IO
 		static ConsoleStream console;
 	public:
 		static int WriteLine(const char* text, ...);
-		static int WriteLine(ConsoleColor Color,const char* text, ...);
+		static int WriteLine(ConsoleColor color, const char* text, ...);
 		static int Write(const char* text, ...);
-		static int Write(ConsoleColor Color,const char* text, ...);
+		static int Write(ConsoleColor color,const char* text, ...);
 		static int WriteV(const char* text, va_list args);
 		static const char* ReadLine();
 		static void Clear();

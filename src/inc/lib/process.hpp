@@ -95,5 +95,6 @@ namespace System::Tasking
 		static void SwitchProcess(regs32_t *regs);
 		static void Init();
 		static void ToggleLog();
+		static Process *GetCurrentProcess();
 	};
 }

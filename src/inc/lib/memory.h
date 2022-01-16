@@ -43,12 +43,7 @@ static inline void* memsetb(void* dest, uint8_t data, size_t size)
 	asm volatile("cld;rep stosb" : "+D"(dest), "+c"(size) : "a"(data) : "memory");
 	return dest;
 }
-static inline void* memset(void* dest, uint8_t data, size_t size)
-{
-	if (size % 4 == 0) return memsetl(dest, data, size);
-	else if (size % 2 == 0) return memsetw(dest, data, size);
-	else return memsetb(dest, data, size);
-}
+void* memset(void* dest, int data, size_t size);
 
 static inline bool memcmpl(const void* src, const void* dest, size_t size)
 {
