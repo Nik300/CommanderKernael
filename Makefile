@@ -14,10 +14,10 @@ MODULES_COMPILE=$(shell find ./mods -name '*.sh' -not -path "initrd/*")
 MODULES_OUTPUT=$(MODULES_COMPILE:.sh=.mod)
 CPP_FILES_OUT = $(CXX_SOURCES:.cpp=.cpp.o)
 C_FILES_OUT = $(C_SOURCES:.c=.c.o)
+.PHONY: all as link clean clean_objects clean_modules grub run-kvm run run_bochs ramdisk
 
-
-all: as $(MODULES_OUTPUT) $(C_FILES_OUT) $(CPP_FILES_OUT) initrd link grub run-kvm
-bochs: as $(MODULES_OUTPUT) $(C_FILES_OUT) $(CPP_FILES_OUT) initrd link grub run-bochs
+all: as $(MODULES_OUTPUT) $(C_FILES_OUT) $(CPP_FILES_OUT) ramdisk link grub clean_modules run-kvm
+bochs: as $(MODULES_OUTPUT) $(C_FILES_OUT) $(CPP_FILES_OUT) ramdisk link grub clean_modules run-bochs
 
 as:
 	i686-elf-as --32 'src/asm/boot.s' -o 'src/asm/boot.a'
@@ -31,6 +31,8 @@ clean:
 
 clean_objects:
 	-rm -Rf $(shell find . -name '*.o') $(shell find . -name '*.a') $(MODULES_OUTPUT)
+clean_modules:
+	-rm -Rf $(MODULES_OUTPUT)
 
 grub:
 	mkdir -p isoroot/boot/grub
@@ -47,7 +49,7 @@ grub:
 %.c.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 %.mod: %.sh
-	bash $<
+	-bash $<
 	
 run:
 	qemu-system-i386 -cdrom $(NAME).iso -serial stdio -vga std -no-reboot -no-shutdown -m 1G
@@ -56,8 +58,20 @@ run-kvm:
 run-bochs:
 	/usr/local/bin/bochs -q -f bochsrc.txt
 
-initrd: ${MODULES_OUTPUT}
+ramdisk: ${MODULES_OUTPUT}
 	mkdir -p initrd/
-	cp -r $(MODULES_OUTPUT) initrd
+	mkdir -p initrd/modules
+	mkdir -p initrd/drivers
+	mkdir -p initrd/extensions
+	mkdir -p initrd/libraries
+	mkdir -p initrd/usr
+	mkdir -p initrd/usr/icons
+	mkdir -p initrd/usr/share
+	mkdir -p initrd/etc
+	mkdir -p initrd/sbin
+	mkdir -p initrd/usr/share/bin
+	
+	cp -r $(MODULES_OUTPUT) initrd/modules
+	cp -r base/* initrd/
 	tar czf  initrd.img -C initrd/ ./ --format=ustar
-	rm -rf initrd/*
+	rm -rf initrd
