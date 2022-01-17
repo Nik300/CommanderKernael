@@ -16,8 +16,8 @@ CPP_FILES_OUT = $(CXX_SOURCES:.cpp=.cpp.o)
 C_FILES_OUT = $(C_SOURCES:.c=.c.o)
 
 
-all: as $(MODULES_OUTPUT) $(C_FILES_OUT) $(CPP_FILES_OUT) initrd link grub clean_objects run-kvm
-bochs: as $(MODULES_OUTPUT) $(C_FILES_OUT) $(CPP_FILES_OUT) initrd link grub clean_objects run-bochs
+all: as $(MODULES_OUTPUT) $(C_FILES_OUT) $(CPP_FILES_OUT) initrd link grub run-kvm
+bochs: as $(MODULES_OUTPUT) $(C_FILES_OUT) $(CPP_FILES_OUT) initrd link grub run-bochs
 
 as:
 	i686-elf-as --32 'src/asm/boot.s' -o 'src/asm/boot.a'
