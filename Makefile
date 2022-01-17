@@ -16,8 +16,8 @@ CPP_FILES_OUT = $(CXX_SOURCES:.cpp=.cpp.o)
 C_FILES_OUT = $(C_SOURCES:.c=.c.o)
 
 
-all: as $(MODULES_OUTPUT) $(C_FILES_OUT) $(CPP_FILES_OUT) initrd link grub clean_objects run-kvm
-bochs: as $(MODULES_OUTPUT) $(C_FILES_OUT) $(CPP_FILES_OUT) initrd link grub clean_objects run-bochs
+all: as $(MODULES_OUTPUT) $(C_FILES_OUT) $(CPP_FILES_OUT) link initrd grub clean_objects run-kvm
+bochs: as $(MODULES_OUTPUT) $(C_FILES_OUT) $(CPP_FILES_OUT) link initrd grub clean_objects run-bochs
 
 as:
 	i686-elf-as --32 'src/asm/boot.s' -o 'src/asm/boot.a'
@@ -35,8 +35,10 @@ clean_objects:
 grub:
 	mkdir -p isoroot/boot/grub
 	mkdir -p isoroot/mods
+	mkdir -p isoroot/initrd
 	echo "test" >> isoroot/mods/test_txt.mod
 	cp kernel.bin isoroot/boot
+	mv initrd.img isoroot/initrd
 	cp src/grub/grub.cfg isoroot/boot/grub
 	grub-mkrescue -o $(NAME).iso isoroot -V "Commander"
 
@@ -54,10 +56,8 @@ run-kvm:
 run-bochs:
 	/usr/local/bin/bochs -q -f bochsrc.txt
 
-initrd:
-	mkdir -p initrd
+initrd: ${MODULES_OUTPUT}
+	mkdir -p initrd/
 	cp -r $(MODULES_OUTPUT) initrd
 	tar czf  initrd.img -C initrd/ ./ --format=ustar
-	mkdir -p isoroot/initrd
-	mv initrd.img isoroot/initrd
-	rm -Rf initrd
+	rm -rf initrd/*
