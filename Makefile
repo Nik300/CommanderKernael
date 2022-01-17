@@ -1,7 +1,7 @@
 CXX=i686-elf-g++
 CC=i686-elf-gcc
 LD=i686-elf-ld
-NAME=Comander
+NAME=Commander
 CXXFLAGS=-Isrc/inc -fno-use-cxa-atexit -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti -Wno-write-strings -Wno-unused-variable -w -Wno-narrowing -Wno-sign-compare -Wno-type-limits -Wno-unused-parameter -Wno-missing-field-initializers
 CFLAGS=-Isrc/inc -fno-use-cxa-atexit -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti -Wno-write-strings -Wno-unused-variable -w -Wno-narrowing -Wno-sign-compare -Wno-type-limits -Wno-unused-parameter -Wno-missing-field-initializers
 NASM=nasm
@@ -12,12 +12,12 @@ LINK_SOURCES=$(shell find src -name '*.o' -not -path "initrd/*")
 MODULES=$(shell find ./mods -name '*.mod' -not -path "initrd/*")
 MODULES_COMPILE=$(shell find ./mods -name '*.sh' -not -path "initrd/*")
 MODULES_OUTPUT=$(MODULES_COMPILE:.sh=.mod)
-CPP_FILES_OUT = $(CXX_SOURCES:.cpp=.o)
-C_FILES_OUT = $(C_SOURCES:.c=.o)
+CPP_FILES_OUT = $(CXX_SOURCES:.cpp=.cpp.o)
+C_FILES_OUT = $(C_SOURCES:.c=.c.o)
 
 
-all: as $(MODULES_OUTPUT) $(C_FILES_OUT) $(CPP_FILES_OUT) link grub clean_objects run-kvm
-bochs: as $(MODULES_OUTPUT) $(C_FILES_OUT) $(CPP_FILES_OUT) link grub clean_objects run-bochs
+all: as $(MODULES_OUTPUT) $(C_FILES_OUT) $(CPP_FILES_OUT) initrd link grub clean_objects run-kvm
+bochs: as $(MODULES_OUTPUT) $(C_FILES_OUT) $(CPP_FILES_OUT) initrd link grub clean_objects run-bochs
 
 as:
 	i686-elf-as --32 'src/asm/boot.s' -o 'src/asm/boot.a'
@@ -36,11 +36,14 @@ grub:
 	mkdir -p isoroot/boot/grub
 	mkdir -p isoroot/mods
 	echo "test" >> isoroot/mods/test_txt.mod
-	cp -r $(MODULES) isoroot/mods
 	cp kernel.bin isoroot/boot
 	cp src/grub/grub.cfg isoroot/boot/grub
 	grub-mkrescue -o $(NAME).iso isoroot -V "Commander"
 
+%.cpp.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+%.c.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 %.mod: %.sh
 	bash $<
 	
@@ -52,4 +55,9 @@ run-bochs:
 	/usr/local/bin/bochs -q -f bochsrc.txt
 
 initrd:
-    tar czf  initrd.tar.gz -C initrd/ ./ --format=ustar
+	mkdir -p initrd
+	cp -r $(MODULES_OUTPUT) initrd
+	tar czf  initrd.img -C initrd/ ./ --format=ustar
+	mkdir -p isoroot/initrd
+	mv initrd.img isoroot/initrd
+	rm -Rf initrd

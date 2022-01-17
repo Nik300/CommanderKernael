@@ -71,6 +71,7 @@ static inline char* strncpy(char* dest, const char* src, size_t n)
 	}
 	return dest;
 }
+#ifdef __cplusplus
 static inline char* strcat(char* &dest, const char* src)
 {
 	dest = (char*)realloc(dest, strlen(dest) + strlen(src) + 1);
@@ -84,6 +85,21 @@ static inline char* strcat(char* &dest, const char* src)
 	dest[i] = '\0';
 	return dest;
 }
+#else
+static inline char* strcat(char* dest, const char* src)
+{
+	int i = 0;
+	while (dest[i] != '\0') i++;
+	while (src[i] != '\0')
+	{
+		dest[i] = src[i];
+		i++;
+	}
+	dest[i] = '\0';
+	return dest;
+}
+#endif
+#ifdef __cplusplus
 static inline char* strncat(char* &dest, const char* src, size_t n)
 {
 	dest = (char*)realloc(dest, strlen(dest) + n + 1);
@@ -97,6 +113,21 @@ static inline char* strncat(char* &dest, const char* src, size_t n)
 	dest[i] = '\0';
 	return dest;
 }
+#else
+static inline char* strncat(char* dest, const char* src, size_t n)
+{
+	int i = 0;
+	while (dest[i] != '\0') i++;
+	while (src[i] != '\0' && i < n)
+	{
+		dest[i] = src[i];
+		i++;
+	}
+	dest[i] = '\0';
+	return dest;
+}
+#endif
+#ifdef __cplusplus
 static inline char* strchr(const char* str, int c)
 {
 	int i = 0;
@@ -107,6 +138,19 @@ static inline char* strchr(const char* str, int c)
 	}
 	return nullptr;
 }
+#else
+static inline char* strchr(const char* str, int c)
+{
+	int i = 0;
+	while (str[i] != '\0')
+	{
+		if (str[i] == c) return (char*)str + i;
+		i++;
+	}
+	return NULL;
+}
+#endif
+#ifdef __cplusplus
 static inline char* strrchr(const char* str, int c)
 {
 	int i = strlen(str) - 1;
@@ -117,6 +161,19 @@ static inline char* strrchr(const char* str, int c)
 	}
 	return nullptr;
 }
+#else 
+static inline char* strrchr(const char* str, int c)
+{
+	int i = strlen(str) - 1;
+	while (i >= 0)
+	{
+		if (str[i] == c) return (char*)str + i;
+		i--;
+	}
+	return NULL;
+}
+#endif
+#ifdef __cplusplus
 static inline char* strstr(const char* str, const char* substr)
 {
 	int i = 0;
@@ -136,6 +193,28 @@ static inline char* strstr(const char* str, const char* substr)
 	}
 	return nullptr;
 }
+#else
+static inline char* strstr(const char* str, const char* substr)
+{
+	int i = 0;
+	while (str[i] != '\0')
+	{
+		if (str[i] == substr[0])
+		{
+			int j = 0;
+			while (str[i + j] != '\0' && substr[j] != '\0')
+			{
+				if (str[i + j] != substr[j]) break;
+				j++;
+			}
+			if (substr[j] == '\0') return (char*)str + i;
+		}
+		i++;
+	}
+	return NULL;
+}
+#endif
+#ifdef __cplusplus
 static inline char* strpbrk(const char* str, const char* accept)
 {
 	int i = 0;
@@ -151,6 +230,24 @@ static inline char* strpbrk(const char* str, const char* accept)
 	}
 	return nullptr;
 }
+#else 
+static inline char* strpbrk(const char* str, const char* accept)
+{
+	int i = 0;
+	while (str[i] != '\0')
+	{
+		int j = 0;
+		while (accept[j] != '\0')
+		{
+			if (str[i] == accept[j]) return (char*)str + i;
+			j++;
+		}
+		i++;
+	}
+	return NULL;
+}
+#endif
+#ifdef __cplusplus
 static inline char* strtok(char* &str, const char* delim)
 {
 	if (str == nullptr)
@@ -169,6 +266,27 @@ static inline char* strtok(char* &str, const char* delim)
 	str = token + 1;
 	return token;
 }
+#else
+static inline char* strtok(char* str, const char* delim)
+{
+	if (str == NULL)
+	{
+		str = (char*)malloc(1);
+		str[0] = '\0';
+	}
+	char* token = strpbrk(str, delim);
+	if (token == NULL)
+	{
+		char* ret = str;
+		str = NULL;
+		return ret;
+	}
+	*token = '\0';
+	str = token + 1;
+	return token;
+}
+#endif
+#ifdef __cplusplus
 static inline char* strtok_r(char* &str, const char* delim, char* &saveptr)
 {
 	if (str == nullptr)
@@ -188,6 +306,28 @@ static inline char* strtok_r(char* &str, const char* delim, char* &saveptr)
 	saveptr = token + 1;
 	return token;
 }
+#else
+static inline char* strtok_r(char* str, const char* delim, char** saveptr)
+{
+	if (str == NULL)
+	{
+		str = (char*)malloc(1);
+		str[0] = '\0';
+	}
+	if (saveptr == NULL) saveptr = str;
+	char* token = strpbrk(saveptr, delim);
+	if (token == NULL)
+	{
+		char* ret = saveptr;
+		saveptr = NULL;
+		return ret;
+	}
+	*token = '\0';
+	saveptr = token + 1;
+	return token;
+}
+#endif
+#ifdef __cplusplus
 static inline char* strsep(char* &str, const char* delim)
 {
 	if (str == nullptr)
@@ -206,6 +346,27 @@ static inline char* strsep(char* &str, const char* delim)
 	str = token + 1;
 	return token;
 }
+#else
+static inline char* strsep(char* str, const char* delim)
+{
+	if (str == NULL)
+	{
+		str = (char*)malloc(1);
+		str[0] = '\0';
+	}
+	char* token = strpbrk(str, delim);
+	if (token == NULL)
+	{
+		char* ret = str;
+		str = NULL;
+		return ret;
+	}
+	*token = '\0';
+	str = token + 1;
+	return token;
+}
+#endif
+#ifdef __cplusplus
 static inline char* strdelc(char* &str, int c)
 {
 	char *result = (char*)malloc(strlen(str) - 1);
@@ -224,6 +385,27 @@ static inline char* strdelc(char* &str, int c)
 	str = result;
 	return str;
 }
+#else
+static inline char* strdelc(char* str, int c)
+{
+	char *result = (char*)malloc(strlen(str) - 1);
+	int i = 0;
+	int j = 0;
+	while (str[i] != '\0')
+	{
+		if (str[i] != c)
+		{
+			result[j] = str[i];
+			j++;
+		}
+		i++;
+	}
+	result[j] = '\0';
+	str = result;
+	return str;
+}
+#endif
+#ifdef __cplusplus
 static inline char* strdelc_r(char* &str, int c)
 {
 	char *result = (char*)malloc(strlen(str) - 1);
@@ -242,6 +424,27 @@ static inline char* strdelc_r(char* &str, int c)
 	str = result;
 	return str;
 }
+#else
+static inline char* strdelc_r(char* str, int c)
+{
+	char *result = (char*)malloc(strlen(str) - 1);
+	int i = 0;
+	int j = 0;
+	while (str[i] != '\0')
+	{
+		if (str[i] != c)
+		{
+			result[j] = str[i];
+			j++;
+		}
+		i++;
+	}
+	result[j] = '\0';
+	str = result;
+	return str;
+}
+#endif
+#ifdef __cplusplus
 static inline char* strdels(char* &str, const char* del)
 {
 	char *result = (char*)malloc(strlen(str) - strlen(del));
@@ -266,6 +469,33 @@ static inline char* strdels(char* &str, const char* del)
 	str = result;
 	return str;
 }
+#else
+static inline char* strdels(char* str, const char* del)
+{
+	char *result = (char*)malloc(strlen(str) - strlen(del));
+	int i = 0;
+	int j = 0;
+	while (str[i] != '\0')
+	{
+		int k = 0;
+		while (del[k] != '\0')
+		{
+			if (str[i] == del[k]) break;
+			k++;
+		}
+		if (del[k] == '\0')
+		{
+			result[j] = str[i];
+			j++;
+		}
+		i++;
+	}
+	result[j] = '\0';
+	str = result;
+	return str;
+}
+#endif
+#ifdef __cplusplus
 static inline char* strdels_r(char* &str, const char* del)
 {
 	char *result = (char*)malloc(strlen(str) - strlen(del));
@@ -290,14 +520,55 @@ static inline char* strdels_r(char* &str, const char* del)
 	str = result;
 	return str;
 }
+#else
+static inline char* strdels_r(char* str, const char* del)
+{
+	char *result = (char*)malloc(strlen(str) - strlen(del));
+	int i = 0;
+	int j = 0;
+	while (str[i] != '\0')
+	{
+		int k = 0;
+		while (del[k] != '\0')
+		{
+			if (str[i] == del[k]) break;
+			k++;
+		}
+		if (del[k] == '\0')
+		{
+			result[j] = str[i];
+			j++;
+		}
+		i++;
+	}
+	result[j] = '\0';
+	str = result;
+	return str;
+}
+#endif
+#ifdef __cplusplus
 static inline char* strdel(char* &str, const char* del)
 {
 	return strdels(str, del);
 }
+#else
+static inline char* strdel(char* str, const char* del)
+{
+	return strdels(str, del);
+}
+#endif
+#ifdef __cplusplus
 static inline char* strdel_r(char* &str, const char* del)
 {
 	return strdels_r(str, del);
 }
+#else
+static inline char* strdel_r(char* str, const char* del)
+{
+	return strdels_r(str, del);
+}
+#endif
+#ifdef __cplusplus
 static inline char* strrev(char* str)
 {
 	int i = 0;
@@ -312,6 +583,22 @@ static inline char* strrev(char* str)
 	}
 	return str;
 }
+#else
+static inline char* strrev(char* str)
+{
+	int i = 0;
+	int j = strlen(str) - 1;
+	while (i < j)
+	{
+		char c = str[i];
+		str[i] = str[j];
+		str[j] = c;
+		i++;
+		j--;
+	}
+	return str;
+}
+#endif
 static inline int strnum(const char* str, int base)
 {
 	int ret = 0;

@@ -18,6 +18,7 @@
 
 #include <init/modules.h>
 #include <drivers/keyboard.h>
+#include <drivers/ustar.h>
 
 __cdecl void *kheap;
 __cdecl int kheap_size;
@@ -42,9 +43,11 @@ namespace System::Kernel
 		Console::Clear();
 		Serial::Init(Serial::SerialPort::COM1);
 		enable_interrupts();
+		ramdisk = (uint8_t*)get_module(0);
+		tar_calc_size();
 		page_dir_init();
 		paging_enable();
-		//while(1);
+		page_map_addr_sz((uintptr_t)ramdisk, (uintptr_t)ramdisk, ramdisk_size);
 		Keyboard = new KeyboardDriver();
 		Keyboard->Init();
 		ProcessManager::Init();
@@ -64,6 +67,9 @@ namespace System::Kernel
 
 		//page_map_addr_sz((uintptr_t)get_module(0), (uintptr_t)get_module(0), get_module_size(0), { present: true, rw: read_write, privilege: supervisor, 0, accessed: false, dirty: true });
 		//elf32_load(get_module(0), get_module_size(0), 3);
+
+		uint8_t *test = tar_fopen("./test.mod");
+		elf32_load(test, tar_ftell("./test.mod"), 3);
 
 		Keyboard->Activate();
 		while (1);
