@@ -13,5 +13,6 @@ namespace System::Userland
 	using namespace System::Memory;
 
 	extern Heap UserHeap;
-	
+
+	void Init();
 }

@@ -273,7 +273,13 @@ extern "C" void interrupt_handler(regs32_t regs)
 
 extern "C" void register_int_handler(uint8_t irq, handler_t handler)
 {
+	// check if interrupts are enabled
+	int eflags;
+	asm("pushf\npop %0" : "=g"(eflags));
+
+	if (eflags & 0x200) asm("cli");
 	handler_table[irq] = handler;
+	if (eflags & 0x200) asm("sti");
 }
 
 void enable_interrupts()

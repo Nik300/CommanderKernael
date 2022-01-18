@@ -1,10 +1,3 @@
-#include <stdint.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <dylink.h>
-#include <cstring.h>
-#include <kernel.h>
-
 extern "C" void _start()
 {
 	char *test = "Hello from userpace module!\n";

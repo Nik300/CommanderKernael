@@ -24,6 +24,7 @@ namespace System::HAL
 	{
 	private:
 		handler_t handler;
+		bool enabled;
 		static uint8_t *buffer;
 		static size_t buffer_size;
 

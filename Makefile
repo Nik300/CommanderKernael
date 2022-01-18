@@ -16,8 +16,8 @@ CPP_FILES_OUT = $(CXX_SOURCES:.cpp=.cpp.o)
 C_FILES_OUT = $(C_SOURCES:.c=.c.o)
 .PHONY: all as link clean clean_objects clean_modules grub run-kvm run run_bochs ramdisk
 
-all: as $(MODULES_OUTPUT) $(C_FILES_OUT) $(CPP_FILES_OUT) ramdisk link grub clean_modules run-kvm
-bochs: as $(MODULES_OUTPUT) $(C_FILES_OUT) $(CPP_FILES_OUT) ramdisk link grub clean_modules run-bochs
+all: as $(MODULES_OUTPUT) $(C_FILES_OUT) $(CPP_FILES_OUT) ramdisk link grub clean_objects run-kvm
+bochs: as $(MODULES_OUTPUT) $(C_FILES_OUT) $(CPP_FILES_OUT) ramdisk link grub clean_objects run-bochs
 
 as:
 	i686-elf-as --32 'src/asm/boot.s' -o 'src/asm/boot.a'
@@ -29,8 +29,8 @@ link:
 clean:
 	-rm -Rf $(shell find . -name '*.o') $(shell find . -name '*.bin') $(shell find . -name '*.iso') $(MODULES_OUTPUT)
 
-clean_objects:
-	-rm -Rf $(shell find . -name '*.o') $(shell find . -name '*.a') $(MODULES_OUTPUT)
+clean_objects: clean_modules
+	-rm -Rf $(shell find . -name '*.o') $(shell find . -name '*.a')
 clean_modules:
 	-rm -Rf $(MODULES_OUTPUT)
 

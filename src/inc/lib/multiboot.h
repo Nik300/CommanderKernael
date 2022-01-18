@@ -22,6 +22,8 @@
  #ifndef MULTIBOOT_HEADER
  #define MULTIBOOT_HEADER 1
 
+#include <stddef.h>
+
  /* How many bytes from the start of the file we search for the header. */
  #define MULTIBOOT_SEARCH                        8192
 
@@ -217,6 +219,23 @@
    multiboot_uint32_t pad;
  };
  typedef struct multiboot_mod_list multiboot_module_t;
+
+static inline size_t get_full_memory_size(multiboot_info_t *mbi)
+{
+	multiboot_mmap_entry *mmap = (multiboot_mmap_entry *)mbi->mmap_addr;
+	size_t size = 0;
+
+
+	for (size_t i = 0; i < mbi->mmap_length/sizeof(multiboot_mmap_entry); i++)
+	{
+		if (mmap[i].type == MULTIBOOT_MEMORY_AVAILABLE)
+		{
+			size += mmap[i].len;
+		}
+	}
+
+	return size;
+}
 
  #endif /* ! ASM_FILE */
 

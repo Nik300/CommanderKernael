@@ -436,6 +436,9 @@ namespace System::IO
 		console.buffer = reinterpret_cast<char*>(io);
 		console.columns = 80;
 		console.rows = 25;
+		console.cursor.init();
+		console.cursor.show();
+		console.cursor.set_cur_size(15, 0);
 	}
 	#pragma endregion
 	#pragma region CURSOR
@@ -448,11 +451,11 @@ namespace System::IO
 		x = 0;
 		y = 0;
 	}
-	int TextModeCursor::get_x()
+	int TextModeCursor::get_x() const
 	{
 		return x;
 	}
-	int TextModeCursor::get_y()
+	int TextModeCursor::get_y() const
 	{
 		return y;
 	}
@@ -476,6 +479,35 @@ namespace System::IO
 	{
 		this->x = x;
 		move(x, y);
+	}
+	void TextModeCursor::show()
+	{
+		outb(0x3D4, 0x0A);
+		outb(0x3D5, 0x0F);
+	}
+	void TextModeCursor::hide()
+	{
+		outb(0x3D4, 0x0A);
+		outb(0x3D5, 0x00);
+	}
+	void TextModeCursor::init()
+	{
+		outb(0x3D4, 0x09);
+		outb(0x3D5, 0x0F);
+
+		outb(0x3D4, 0x0B);
+		outb(0x3D5, 0x0F);
+
+		outb(0x3D4, 0x0A);
+		outb(0x3D5, 0x0E);
+	}
+	void TextModeCursor::set_cur_size(uint8_t x_size, uint8_t y_size)
+	{
+		outb(0x3D4, 0x0A);
+		outb(0x3D5, y_size);
+
+		outb(0x3D4, 0x0B);
+		outb(0x3D5, x_size);
 	}
 	#pragma endregion
 	#pragma region COLORS

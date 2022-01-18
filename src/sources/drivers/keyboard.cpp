@@ -4,15 +4,20 @@
 
 #include <lib/memory.h>
 #include <lib/ports.h>
+#include <lib/serial.h>
+
+#define KB_COMMAND_PORT 0x64
+
+#define KB_DATA_PORT 0x60
 
 using namespace System::HAL;
 
 char* *KeyboardDriver::layout = nullptr;
 
 KeyboardDriver::KeyboardDriver()
-: InterruptDriver(0x21, handler), handler([](regs32_t *regs)
+: InterruptDriver(0x21, handler), enabled(false), handler([](regs32_t *regs)
 {
-	uint8_t scancode = inb(0x60);
+	uint8_t scancode = inb(KB_DATA_PORT);
 	
 	if (scancode >= 58)
 		return;
@@ -43,6 +48,9 @@ void KeyboardDriver::Init()
 void KeyboardDriver::Activate()
 {
 	register_int_handler(1, handler);
+
+	// enable scanning
+	inb(0x60);
 }
 void KeyboardDriver::Deactivate()
 {

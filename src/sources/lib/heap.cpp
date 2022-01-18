@@ -3,6 +3,7 @@
 
 #include <lib/heap.hpp>
 #include <lib/memory.h>
+#include <lib/serial.h>
 
 #include <kernel.h>
 
@@ -17,15 +18,11 @@ Heap::Heap(void* buffer, size_t total_sz)
 
 void Heap::InitializeBuffer(void *buffer)
 {
-	if (sz % 4 == 0) memsetl(buffer, 0, sz);
-	else if (sz % 2 == 0) memsetw(buffer, 0, sz);
-	else memset(buffer, 0, sz);
-
 	info_buffer = (EntryInfo*)buffer;
 	for(int i = 0; i < max_entries; i++)
 		info_buffer[i] = {
 			.used = false,
-			.dirty = false
+			.dirty = true
 		};
 	data_buffer = (void*)(buffer + (sizeof(EntryInfo)*max_entries));
 }
@@ -78,9 +75,10 @@ size_t Heap::GetSize() const
 size_t Heap::GetUsedSize() const
 {
 	size_t s = 0;
-	DataEntry *entry = (DataEntry*)data_buffer;
-	for (int i = 0; i < max_entries; i += entry->sz)
-		if (entry->state_flags.used) s += entry->sz;
+	
+	for (int i = 0; i < max_entries; i++)
+		if (info_buffer[i].used) s += ENTRY_SZ;
+
 	return s;
 }
 size_t Heap::GetFreeSize() const
@@ -91,3 +89,7 @@ size_t Heap::GetFreeSize() const
 Heap *Heap::CurrentHeap = &System::Kernel::KernelHeap;
 
 Heap *Heap::GetCurrentHeap() { return Heap::CurrentHeap; }
+void  Heap::SetCurrentHeap(Heap *heap)
+{
+	Heap::CurrentHeap = heap;
+}

@@ -30,13 +30,16 @@ namespace System::IO
 	{
 	friend class ConsoleStream;
 	private:
-		virtual int get_x() = 0;
-		virtual int get_y() = 0;
+		virtual int get_x() const = 0;
+		virtual int get_y() const = 0;
 
 	public:
 		virtual void move(int x, int y) = 0;
 		virtual void moveX(int x) = 0;
 		virtual void moveY(int y) = 0;
+		virtual void init() = 0;
+		virtual void show() = 0;
+		virtual void hide() = 0;
 	};
 
 	class TextModeCursor final: public Cursor
@@ -46,8 +49,8 @@ namespace System::IO
 		int x;
 		int y;
 	private:
-		int get_x() override;
-		int get_y() override;
+		int get_x() const override;
+		int get_y() const override;
 	private:
 		TextModeCursor();
 		~TextModeCursor();
@@ -56,6 +59,10 @@ namespace System::IO
 		void move(int x, int y) override;
 		void moveX(int x) override;
 		void moveY(int y) override;
+		void init() override;
+		void show() override;
+		void hide() override;
+		void set_cur_size(uint8_t x_size, uint8_t y_size);
 	};
 
 	class ConsoleStream final : public Stream

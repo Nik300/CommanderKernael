@@ -76,6 +76,7 @@ void page_unmap_addr_dir(uint32_t virt, page_dir_t *dir);
 void page_unmap_addr_dir_sz(uint32_t virt, page_dir_t *dir, size_t sz);
 void paging_disable();
 page_dir_t *get_kernel_dir();
+page_dir_t *get_current_dir();
 void page_switch_dir(page_dir_t *dir);
 void page_init_dir(page_dir_t *dir);
 #else

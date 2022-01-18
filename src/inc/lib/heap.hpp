@@ -40,6 +40,7 @@ namespace System::Memory
 
 	public:
 		static Heap *GetCurrentHeap();
+		static void  SetCurrentHeap(Heap *heap);
 	public:
 		void *AllocEntries(size_t count);
 		void FreeEntry(void *entry);
