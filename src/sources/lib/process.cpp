@@ -3,12 +3,15 @@
 #include <lib/gdt.h>
 #include <lib/ports.h>
 #include <lib/memory.h>
+#include <lib/userland.hpp>
 
 #include <std/stdio.h>
 #include <lib/serial.h>
 #include <init/modules.h>
 
 #include <kernel.h>
+
+#define PROC_ENTRIES_COUNT (sizeof(Process)/ENTRY_SZ)+1
 
 __cdecl uintptr_t procs_addr;
 __cdecl void *kend;
@@ -17,10 +20,6 @@ namespace System::Tasking
 {
 	Process::Process(uint32_t vaddr, uint32_t paddr, ProcessEntry entry, PrivilegeLevel privilege)
 	{
-		this->virt_addr = vaddr;
-		this->phys_addr = paddr;
-		this->entry = entry;
-		this->privilege = privilege;
 
 		uint32_t cs;
 		uint32_t ds;
@@ -79,6 +78,10 @@ namespace System::Tasking
 		this->has_exited = false;
 
 		this->pid = 0;
+		this->virt_addr = vaddr;
+		this->phys_addr = paddr;
+		this->entry = entry;
+		this->privilege = privilege;
 	}
 	Process::~Process()
 	{
@@ -147,7 +150,7 @@ namespace System::Tasking
 		this->has_crashed = false;
 		this->has_exited = false;
 		
-		this->dir = (page_dir_t*)mem_align((void*)&heap[0]);
+		this->dir = (page_dir_t*)mem_align((void*)pad);
 
 		this->pid = 0;
 	}
@@ -237,10 +240,6 @@ namespace System::Tasking
 	{
 		return this->stack;
 	}
-	const uint8_t    *Process::GetHeap()
-	{
-		return this->heap;
-	}
 	uint32_t	      Process::GetPID()
 	{
 		return this->pid;
@@ -273,9 +272,21 @@ namespace System::Tasking
 	{
 		return this->has_exited;
 	}
+	uint32_t 	   	  Process::GetVirtAddr()
+	{
+		return this->virt_addr;
+	}
+	uint32_t 	   	  Process::GetPhysAddr()
+	{
+		return this->phys_addr;
+	}
+	void 			  Process::SetVirtAddr(uint32_t addr)
+	{
+		this->virt_addr = addr;
+	}
 
 
-	Process *ProcessManager::processes_heap = (Process *)procs_addr;
+	vector<Process*> ProcessManager::processes_heap = vector<Process*>();
 	uint32_t ProcessManager::processes_count = 0;
 	uint32_t ProcessManager::processes_free = 0;
 	uint32_t ProcessManager::processes_used = 0;
@@ -285,65 +296,17 @@ namespace System::Tasking
 
 	Process *ProcessManager::GetFreeProcEntry()
 	{
-		Process *proc = 0;
-		for (uint32_t i = 0; i < ProcessManager::processes_count; i++)
-		{
-			if (!ProcessManager::processes_heap[i].IsAlive())
-			{
-				proc = &ProcessManager::processes_heap[i];
-				break;
-			}
-		}
-		return proc;
+		Process *result = (Process*)System::Userland::UserHeap.AllocEntries(PROC_ENTRIES_COUNT);
+		processes_heap.push_back(result);
+		return (Process*)processes_heap[processes_count];
 	}
 
 	Process *ProcessManager::Create(uint32_t vaddr, uint32_t paddr, ProcessEntry entry, PrivilegeLevel privilege, page_dir_t *dir)
 	{
-		Process *proc;
-		if (ProcessManager::processes_count == 0)
-		{
-			page_map_addr_sz((uintptr_t)ProcessManager::processes_heap, (uintptr_t)ProcessManager::processes_heap, sizeof(Process), (page_table_entry_t){
-				.present = true,
-				.rw = read_write,
-				.privilege = user,
-				.reserved_1 = 0,
-				.accessed = false,
-				.dirty = false,
-				.reserved_2 = 0,
-				.free = false,
-				.unused = 0,
-			});
-			ProcessManager::processes_used++;
-			ProcessManager::processes_count++;
-			proc = &ProcessManager::processes_heap[0];
-		}
-		else if (ProcessManager::processes_free > ProcessManager::processes_used)
-		{
-			printf("test %d/%d\n", ProcessManager::processes_free, ProcessManager::processes_used);
-			proc = ProcessManager::GetFreeProcEntry();
-			ProcessManager::processes_free--;
-			ProcessManager::processes_used++;
-		}
-		else
-		{
-			page_map_addr_sz((uintptr_t)&ProcessManager::processes_heap[ProcessManager::processes_count], (uintptr_t)&ProcessManager::processes_heap[ProcessManager::processes_count], sizeof(Process), (page_table_entry_t){
-				.present = true,
-				.rw = read_write,
-				.privilege = supervisor,
-				.reserved_1 = 0,
-				.accessed = false,
-				.dirty = false,
-				.reserved_2 = 0,
-				.free = false,
-				.unused = 0,
-			});
-			proc = &ProcessManager::processes_heap[ProcessManager::processes_count];
-			ProcessManager::processes_count++;
-			ProcessManager::processes_used++;
-		}
+		Process *proc = GetFreeProcEntry();
 
 		proc->Init(vaddr, paddr, entry, privilege);
-		proc->pid = ProcessManager::next_pid++;
+		proc->pid = processes_count;
 
 		if (dir) { proc->dir = dir; goto done; }
 
@@ -361,26 +324,44 @@ namespace System::Tasking
 			.unused = 0,
 		});
 
-		done: return proc;
+		done:
+			if (log) dprintf("[ProcessManager] Process with PID %d created at address 0x%x\n", proc->GetPID(), proc);
+			if (log) dprintf("	- Page Dir: 0x%x\n", proc->GetDir());
+			processes_count++;
+			processes_used++;
+			return proc;
 	}
 	void ProcessManager::Destroy(Process *process)
 	{
 		if (process->IsAlive())
 		{
-			process->SigKill();
+			System::Userland::UserHeap.FreeAllProcessEntries(process->GetPID());
+			processes_heap.remove(process->GetPID());
+			process->has_crashed = false;
+			process->has_exited = false;
+			process->is_alive = false;
+			process->is_running = false;
+			process->is_waiting = false;
+			process->is_sleeping = false;
+			process->dir = NULL;
+			
+			memset(process->stack, 0, sizeof(process->stack));
+			memset(process->pad, 0, sizeof(process->pad));
+
+			System::Userland::UserHeap.FreeEntries(process, PROC_ENTRIES_COUNT);
+
+			ProcessManager::processes_used--;
+			ProcessManager::processes_count--;
+
+			if (log) dprintf("[ProcessManager] Process with PID %d destroyed!\n", process->GetPID());
 		}
-		ProcessManager::processes_free++;
-		ProcessManager::processes_used--;
 	}
 	void ProcessManager::Destroy(uint32_t pid)
 	{
-		for (uint32_t i = 0; i < ProcessManager::processes_count; i++)
+		Process *proc = processes_heap[pid];
+		if (proc)
 		{
-			if (ProcessManager::processes_heap[i].GetPID() == pid)
-			{
-				ProcessManager::Destroy(&ProcessManager::processes_heap[i]);
-				break;
-			}
+			Destroy(proc);
 		}
 	}
 	
@@ -388,17 +369,14 @@ namespace System::Tasking
 
 	void ProcessManager::SwitchProcess(regs32_t *r)
 	{
-		//page_switch_dir(get_kernel_dir());
+		asm("cli");
+		page_switch_dir(get_kernel_dir());
 		if (ProcessManager::processes_count == 0) return;
-		Process *proc = &ProcessManager::processes_heap[ProcessManager::current_thread];
+		Process *proc = ProcessManager::processes_heap[ProcessManager::current_thread];
 		if(started) proc->regs = *r;
-		else
-		{
-			Process *kproc = &ProcessManager::processes_heap[0];
-		}
 		int i = 0;
 		loop:
-			if (i >= ProcessManager::processes_count)
+			if (i > ProcessManager::processes_count)
 			{
 				ProcessManager::current_thread = 0;
 				return;
@@ -408,11 +386,12 @@ namespace System::Tasking
 				ProcessManager::current_thread = 0;
 			}
 
-			proc = &ProcessManager::processes_heap[ProcessManager::current_thread];
+			proc = ProcessManager::processes_heap[ProcessManager::current_thread];
+			if (log) dprintf("[ProcessManager] PID: %d\n", proc->GetPID());
 			if (proc->IsAlive())
 			{
-				page_switch_dir(proc->GetDir());
 				if (!proc->IsRunning()) proc->SigRun();
+				page_switch_dir(proc->GetDir());
 				
 				r->eax = proc->regs.eax;
 				r->ebx = proc->regs.ebx;
@@ -432,18 +411,18 @@ namespace System::Tasking
 				r->eflags = proc->regs.eflags;
 				r->ss = proc->regs.ss;
 				
+				r->identifier.interrupt_number = proc->regs.identifier.interrupt_number;
+
 				if (log)
 				{
 					dprintf("[ProcessManager] Switching to process %d/%d\n", proc->GetPID()+1, ProcessManager::processes_count);
 					dprintf("[ProcessManager] CS: 0x%x, DS: 0x%x, SS: 0x%x\n", r->cs, r->ds, r->ss);
 				}
-				
-				r->identifier.interrupt_number = proc->regs.identifier.interrupt_number;
 			}
 			else if (proc->HasExited() || proc->HasCrashed())
 			{
 				ProcessManager::Destroy(proc);
-				if (log) dprintf("[ProcessManager] Process %d/%d has exited\n", proc->GetPID()+1, ProcessManager::processes_count);
+				if (log) dprintf("[ProcessManager] Process %d has exited\n", proc->GetPID(), ProcessManager::processes_count);
 				goto loop;
 			}
 			else { i++; goto loop; }
@@ -451,12 +430,11 @@ namespace System::Tasking
 	}
 	void ProcessManager::Init()
 	{
-		ProcessManager::processes_count = 0;
-		ProcessManager::processes_free = 0;
-		ProcessManager::processes_used = 0;
-		ProcessManager::current_thread = 0;
-		ProcessManager::next_pid = 0;
-		ProcessManager::processes_heap = (Process *)procs_addr;
+	//	ProcessManager::processes_count = 0;
+	//	ProcessManager::processes_free = 0;
+	//	ProcessManager::processes_used = 0;
+	//	ProcessManager::current_thread = 0;
+	//	ProcessManager::next_pid = 0;
 		register_int_handler(0, ProcessManager::SwitchProcess);
 	}
 	void ProcessManager::ToggleLog()
@@ -465,6 +443,10 @@ namespace System::Tasking
 	}
 	Process *ProcessManager::GetCurrentProcess()
 	{
-		return &ProcessManager::processes_heap[ProcessManager::current_thread];
+		return ProcessManager::processes_heap[ProcessManager::current_thread];
+	}
+	bool ProcessManager::IsStarted()
+	{
+		return started;
 	}
 }

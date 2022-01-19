@@ -51,7 +51,6 @@ namespace System::Kernel
 		page_map_addr_sz((uintptr_t)ramdisk, (uintptr_t)ramdisk, ramdisk_size);
 		Keyboard = new KeyboardDriver();
 		Keyboard->Init();
-		ProcessManager::Init();
 		ProcessManager::ToggleLog();
 	}
 	void run(const char* version, const char* name, const char* OSName)
@@ -70,21 +69,19 @@ namespace System::Kernel
 		Console::WriteLine("[%s] Installed Memory: %dMB", name, get_full_memory_size(multiboot_data)/1024/1024);
 		
 		System::Userland::Init();
-		
-		Console::WriteLine("[%s] Userland heap: 0x%x", name, System::Userland::UserHeap.GetDataBuffer());
-		Console::WriteLine("[%s] Userland heap size: %dMB", name, System::Userland::UserHeap.GetSize()/1024/1024);
-		Console::WriteLine("[%s] Userland heap used: %d bytes", name, System::Userland::UserHeap.GetUsedSize());
-		Console::WriteLine("[%s] Userland heap free: %dMB", name, System::Userland::UserHeap.GetFreeSize()/1024/1024);
 
-		//ProcessManager::Create(0, 0, [](char *argv[], int argc) { while (1); }, PrivilegeLevel::Kernel);
+		Console::WriteLine("[%s] User heap: 0x%x", name, System::Userland::UserHeap.GetDataBuffer());
+		Console::WriteLine("[%s] User heap size: %dMB", name, System::Userland::UserHeap.GetSize()/1024/1024);
+		Console::WriteLine("[%s] User heap used: %d bytes", name, System::Userland::UserHeap.GetUsedSize());
+		Console::WriteLine("[%s] User heap free: %dMB", name, System::Userland::UserHeap.GetFreeSize()/1024/1024);
+		Console::WriteLine("[%s] User heap end at: 0x%x", name, System::Userland::UserHeap.GetLastEntryAddress()+ENTRY_SZ);
 
-		//page_map_addr_sz((uintptr_t)get_module(0), (uintptr_t)get_module(0), get_module_size(0), { present: true, rw: read_write, privilege: supervisor, 0, accessed: false, dirty: true });
-		//elf32_load(get_module(0), get_module_size(0), 3);
+		uint8_t *test = tar_fopen("./modules/test.mod");
+		ProcessManager::Create(0, 0, [](char *args[], int argv){ while(1); }, PrivilegeLevel::Kernel)->SigRun();
+		Process *proc = (Process*)elf32_load(test, tar_ftell("./modules/test.mod"), 3);
+		proc->SigRun();
+		ProcessManager::Init();
 
-		//uint8_t *test = tar_fopen("./modules/test.mod");
-		//elf32_load(test, tar_ftell("./modules/test.mod"), 3);
-
-		Keyboard->Activate();
 		while (1);
 	}
 }

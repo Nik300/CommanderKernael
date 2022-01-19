@@ -41,7 +41,7 @@
         .space KSTACK_SZ
     kstack_top:
     kheap:
-		.space KHEAP_SZ
+		.space KHEAP_SZ + 4096
 	kheap_e:
 	pheap:
 		.space PHEAP_SZ

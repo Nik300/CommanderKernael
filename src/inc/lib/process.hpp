@@ -11,6 +11,7 @@
 #include <std/int_handler.h>
 
 #include <lib/paging.h>
+#include <std/vector.hpp>
 
 namespace System::Tasking
 {
@@ -28,9 +29,9 @@ namespace System::Tasking
 	private:
 		regs32_t   regs;
 		uint8_t	   stack[64*1024];
-		uint8_t	   heap [64*1024*1024];
 	private:
 		page_dir_t   *dir;
+		uint8_t	  	 pad[4096+sizeof(page_dir_t)];
 		uint32_t   	 virt_addr;
 		uint32_t   	 phys_addr;
 		ProcessEntry entry;
@@ -62,7 +63,6 @@ namespace System::Tasking
 		page_dir_t 		 *GetDir();
 		const regs32_t   &GetRegs();
 		const uint8_t    *GetStack();
-		const uint8_t    *GetHeap();
 		uint32_t	      GetPID();
 		PrivilegeLevel    GetPrivilege();
 		bool		      IsAlive();
@@ -71,13 +71,16 @@ namespace System::Tasking
 		bool		      IsSleeping();
 		bool		      HasCrashed();
 		bool		      HasExited();
+		uint32_t		  GetVirtAddr();
+		uint32_t		  GetPhysAddr();
+		void			  SetVirtAddr(uint32_t vaddr);
 	public:
 		void              Init(uint32_t vaddr, uint32_t paddr, ProcessEntry entry, PrivilegeLevel privilege);
 	};
 	class ProcessManager final
 	{
 	private:
-		static Process *processes_heap;
+		static vector<Process*> processes_heap;
 		static uint32_t processes_count;
 		static uint32_t processes_free;
 		static uint32_t processes_used;
@@ -96,5 +99,6 @@ namespace System::Tasking
 		static void Init();
 		static void ToggleLog();
 		static Process *GetCurrentProcess();
+		static bool IsStarted();
 	};
 }

@@ -50,6 +50,10 @@ __cdecl page_dir_t *get_kernel_dir()
 {
 	return kernel_dir;
 }
+__cdecl page_dir_t *get_current_dir()
+{
+	return current_dir;
+}
 
 __cdecl uintptr_t mem_align(void *addr)
 {
@@ -85,6 +89,7 @@ __cdecl void page_dir_init()
 __cdecl void page_init_dir(page_dir_t *dir)
 {
 	dir->phy_addr = (uint32_t)&(dir->entries);
+	memset((void*)dir->tables_phy, 0, sizeof(dir->tables_phy));
 	for (int i = 0; i < 1024; i++)
 	{
 		uintptr_t table_addr = (uintptr_t)(&dir->tables_phy[i]);

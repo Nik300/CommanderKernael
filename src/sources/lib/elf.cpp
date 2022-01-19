@@ -44,6 +44,7 @@ __cdecl uint32_t elf32_load(void *data, size_t size, uint8_t privilege)
 	dprintf("[%s] 		ELF section header count: %d\n", "ELF", header->shdr_count);
 
 	uint8_t *prog_data = (uint8_t*)calloc(size + 0x2000);
+	uint32_t vaddr = 0;
 	current_module = prog_data;
 	
 	for (uintptr_t i = 0; i < header->phdr_count; i++)
@@ -63,6 +64,8 @@ __cdecl uint32_t elf32_load(void *data, size_t size, uint8_t privilege)
 			page_map_addr_sz((uint32_t)mem_align(prog_data), prog_hdr[i].vaddr, prog_hdr[i].filesz+0x2000, {present: true, rw: read_write, privilege: user, reserved_1: (0), accessed: false, dirty: false});
 			page_map_addr_dir_sz((uint32_t)mem_align(prog_data), prog_hdr[i].vaddr, proc->GetDir(), size+0x2000, {present: true, rw: read_write, privilege: user, reserved_1: (0), accessed: false, dirty: false});
 
+			proc->SetVirtAddr(prog_hdr[i].vaddr);
+
 			memcpy((void*)mem_align(prog_data), (uint8_t*)data+prog_hdr[i].offset, size + 0x1000);
 
 			page_unmap_addr_sz(prog_hdr[i].vaddr, size+0x2000);
@@ -73,7 +76,6 @@ __cdecl uint32_t elf32_load(void *data, size_t size, uint8_t privilege)
 	}
 
 	//while(1);
-	proc->SigRun();
 
 	return (uint32_t)proc;
 }

@@ -6,6 +6,7 @@
 #include <lib/serial.h>
 #include <init/modules.h>
 #include <lib/process.hpp>
+#include <lib/userland.hpp>
 
 #define LOW_16(x) (uint16_t)(x & 0xFFFF)
 #define HIGH_16(x) (uint16_t)(x >> 16)
@@ -166,16 +167,52 @@ bool idt32_init()
 		switch (r->eax)
 		{
 			case 0:
-				printf((char*)r->ebx);
+				// print string
+				r->eax = printf("%s", r->ebx);
 				break;
 			case 1:
 				using namespace System::Tasking;
+				dprintf("[SYSCALL] Closing process %d\n", ProcessManager::GetCurrentProcess()->GetPID());
 				// exit system call
 				page_switch_dir(get_kernel_dir());
 				__reload_regs();
-				ProcessManager::Destroy(ProcessManager::GetCurrentProcess());
+				ProcessManager::GetCurrentProcess()->SigKill();
+				// call PIT interrupt via asm
+				asm("int $0x20");
+				break;
+			case 2:
+				{
+					// userheap alloc entries
+					page_switch_dir(get_kernel_dir());
+					__reload_regs();
+					Process *proc = ProcessManager::GetCurrentProcess();
+					
+					uint32_t count = r->ebx;
+					if (count == 0)
+						return;
+					else if (count > System::Userland::UserHeap.GetMaxEntries())
+						return;
+					r->ecx = (uint32_t) System::Userland::UserHeap.AllocEntries(count, proc->GetPID());
+
+					if (!r->eax)
+					{
+						r->ebx = -1;
+						return;
+					}
+					page_map_addr_dir_sz(r->ecx, r->ecx+proc->GetVirtAddr(), proc->GetDir(), ENTRY_SZ*count, {present: true, rw: read_write, privilege: user, reserved_1: (0), accessed: true, dirty: true});
+					r->eax = 0;
+					r->ecx += proc->GetVirtAddr();
+					dprintf("[SYSCALL] Allocated %d entries at 0x%x\n", count, r->ecx);
+					page_switch_dir(proc->GetDir());
+				}
+				break;
+			case 0xFF:
+				asm("cli");
+				r->eflags |= 0x200;
+				break;
 			default:
 				r->eax = -1;
+				break;
 		}
 	});
 
