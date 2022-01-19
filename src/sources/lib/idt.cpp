@@ -269,19 +269,21 @@ extern "C" void fault_handler(regs32_t regs)
 	//set bsod
 	//Console::Clear(ConsoleColor::White, ConsoleColor::Blue);
 
+	Console::Clear(ConsoleColor::White, ConsoleColor::Blue);
+
 	//print exception
-	Serial::WriteLine("An error has occured and the kernel will be halted to prevent further damage.\n\nTechnical details:");
-	Serial::WriteLine("Exception: %s", exceptions[regs.identifier.trap_number]);
-	Serial::WriteLine("Error code: %x", regs.eflags);
+	Console::WriteLine("An error has occured and the kernel will be halted to prevent further damage.\n\nTechnical details:");
+	Console::WriteLine("Exception: %s", exceptions[regs.identifier.trap_number]);
+	Console::WriteLine("Error code: %x", regs.eflags);
 
 	//stack trace
-	Serial::WriteLine("\nStack trace:");
-	Serial::WriteLine("EAX: 0x%x EBX: 0x%x ECX: 0x%x EDX: 0x%x", regs.eax, regs.ebx, regs.ecx, regs.edx);
-	Serial::WriteLine("ESI: 0x%x EDI: 0x%x EBP: 0x%x ESP: 0x%x", regs.esi, regs.edi, regs.ebp, regs.esp);
-	Serial::WriteLine("EFLAGS: %x", regs.eflags);
-	Serial::WriteLine("CS: 0x%x DS: 0x%x SS: 0x%x", regs.cs, regs.ds, regs.ss);
-	Serial::WriteLine("EIP: 0x%x", regs.eip);
-	Serial::WriteLine("USER ESP: 0x%x", regs.useresp);
+	Console::WriteLine("\nStack trace:");
+	Console::WriteLine("EAX: 0x%x EBX: 0x%x ECX: 0x%x EDX: 0x%x", regs.eax, regs.ebx, regs.ecx, regs.edx);
+	Console::WriteLine("ESI: 0x%x EDI: 0x%x EBP: 0x%x ESP: 0x%x", regs.esi, regs.edi, regs.ebp, regs.esp);
+	Console::WriteLine("EFLAGS: %x", regs.eflags);
+	Console::WriteLine("CS: 0x%x DS: 0x%x SS: 0x%x", regs.cs, regs.ds, regs.ss);
+	Console::WriteLine("EIP: 0x%x", regs.eip);
+	Console::WriteLine("USER ESP: 0x%x", regs.useresp);
 
 	// send eoi
 	outb(0x20, 0x20);
