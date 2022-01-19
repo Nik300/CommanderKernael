@@ -58,6 +58,10 @@ namespace System::Kernel
 		Console::Clear();
 
 		Console::WriteLine(ConsoleColor::Yellow, "[%s] %s Booted successfully!", name, OSName);
+		Console::WriteLine(ConsoleColor::LightBlue,"   __    ____  ____  _____  ___ ");
+		Console::WriteLine(ConsoleColor::LightBlue,"  /__\\  ( ___)(  _ \\(  _  )/ __)");
+		Console::WriteLine(ConsoleColor::LightBlue," /(__)\\  )__)  )   / )(_)( \\__ \\");
+		Console::WriteLine(ConsoleColor::LightBlue,"(__)(__)(____)(_)\\_)(_____)(___/");
 		Console::WriteLine("[%s] Version: %s", name, version);
 		Console::WriteLine("[%s] Kernel heap: 0x%x", name, KernelHeap.GetDataBuffer());
 		Console::WriteLine("[%s] Kernel heap size: %dMB", name, KernelHeap.GetSize()/1024/1024);
