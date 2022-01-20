@@ -6,4 +6,5 @@
 *.mod
 *.tar
 *.ini
+bochsout.txt
 isoroot/
