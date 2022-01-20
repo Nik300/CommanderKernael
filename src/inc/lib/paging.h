@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <std/stddecl.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,17 +23,17 @@ typedef struct page_table_entry
 	uint8_t		free      : 1; // Indicates if the page is free or not
     uint32_t 	unused    : 2; // Unused bits, available for kernel use
 	uintptr_t	block_addr: 20;// The address of the page
-} __attribute__((packed)) page_table_entry_t;
+} __packed page_table_entry_t;
 typedef struct page_table
 {
 	page_table_entry_t entries[1024];
-} __attribute__((packed)) page_table_t;
+} __packed page_table_t;
 typedef struct page_dir
 {
 	page_table_t *entries[1024];
 	page_table_t tables_phy[1024];
 	uint32_t	 phy_addr;
-} __attribute__((packed)) page_dir_t;
+} __packed page_dir_t;
 
 void page_dir_init();
 #ifdef __cplusplus

@@ -10,8 +10,8 @@
 
 using namespace System::Memory;
 
-Heap::Heap(void* buffer, size_t total_sz)
-: sz(total_sz-((total_sz/ENTRY_SZ)*sizeof(EntryInfo))), max_entries(sz/ENTRY_SZ)
+Heap::Heap(void* buffer, size_t total_sz, bool paged)
+: sz(total_sz-((total_sz/ENTRY_SZ)*sizeof(EntryInfo))), max_entries(sz/ENTRY_SZ), current_entry(0), paged(paged)
 {
 	if (buffer == nullptr) return;
 	InitializeBuffer(buffer);
@@ -19,12 +19,9 @@ Heap::Heap(void* buffer, size_t total_sz)
 
 void Heap::InitializeBuffer(void *buffer)
 {
+	dprintf("[HEAP] Initializing heap buffer at 0x%x\n", buffer);
 	info_buffer = (EntryInfo*)buffer;
-	for(int i = 0; i < max_entries; i++)
-		info_buffer[i] = {
-			.used = false,
-			.dirty = true
-		};
+	if (!paged) page_map_addr_sz((uintptr_t)info_buffer, (uintptr_t)info_buffer, (size_t)mem_align((void*)(max_entries*sizeof(EntryInfo))), {present: true, rw: read_write, privilege: supervisor, reserved_1: (0), accessed: false, dirty: false});
 	data_buffer = (void*)mem_align((void*)(buffer + (sizeof(EntryInfo)*max_entries)));
 }
 
@@ -38,8 +35,19 @@ void* Heap::AllocEntries(size_t count, uint32_t PID)
 		bool found = true;
 		for (ind = i, s = 0; s < count; s++)
 		{
-			if (info_buffer[i].used) { found = false; break; }
-			if (info_buffer[i].dirty) memsetl(data_buffer+(ENTRY_SZ*i), 0, ENTRY_SZ);
+			if (i+s >= current_entry)
+			{
+				for (int j = 0; j < count-s; j++, current_entry++)
+				{
+					info_buffer[s+i+j].used = 0;
+					info_buffer[s+i+j].dirty = 0;
+					if (!paged) page_map_addr_sz((uintptr_t)data_buffer + (s+i+j)*ENTRY_SZ, (uintptr_t)data_buffer + (s+i+j)*ENTRY_SZ, (size_t)ENTRY_SZ, {present: true, rw: read_write, privilege: supervisor, reserved_1: (0), accessed: false, dirty: false});
+				}
+				current_entry++;
+				dprintf("[HEAP] New current_entry: %d\n", current_entry);
+			}
+			if (info_buffer[i+s].used) { found = false; break; }
+			if (info_buffer[i+s].dirty) memsetl(data_buffer+(ENTRY_SZ*(i+s)), 0, ENTRY_SZ);
 		}
 	if (!found) { i++; goto loop; }
 	for (int y = ind, i = 0; i < count; y++, i++) { info_buffer[y].used = true; info_buffer[y].dirty = true; info_buffer[y].AllocPID = PID; }
@@ -52,13 +60,11 @@ void Heap::FreeEntry(void *data)
 }
 void Heap::FreeEntries(void *data, size_t count)
 {
-	uint32_t ind = ((uint32_t)data - (uint32_t)data_buffer)/ENTRY_SZ;
-	if (!(ind >= 0 && ind < max_entries && info_buffer[ind].used)) return;
-	for (; ind < count; ind++) info_buffer[ind].used = false;
+	for (int i = 0; i < count; i++) { FreeEntry(data+i*ENTRY_SZ); }
 }
 void Heap::FreeAllProcessEntries(uint32_t PID)
 {
-	for (int i = 0; i < max_entries; i++)
+	for (int i = 0; i < current_entry; i++)
 	{
 		if (info_buffer[i].used && info_buffer[i].AllocPID == PID)
 		{

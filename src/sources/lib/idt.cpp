@@ -271,6 +271,9 @@ extern "C" void fault_handler(regs32_t regs)
 
 	Console::Clear(ConsoleColor::White, ConsoleColor::Blue);
 
+	Console::SetBG(ConsoleColor::Blue);
+	Console::SetFG(ConsoleColor::White);
+
 	//print exception
 	Console::WriteLine("An error has occured and the kernel will be halted to prevent further damage.\n\nTechnical details:");
 	Console::WriteLine("Exception: %s", exceptions[regs.identifier.trap_number]);

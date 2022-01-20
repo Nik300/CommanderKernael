@@ -87,3 +87,5 @@ __cdecl size_t tar_calc_size();
 
 __cdecl uint8_t *tar_fopen(const char *path);
 __cdecl size_t   tar_ftell(const char *path);
+
+__cdecl void tar_list_all();

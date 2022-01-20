@@ -1,4 +1,5 @@
 #include <kernel.h>
+#include <compile_vars.h>
 
 #include <std/stdio.h>
 #include <std/cstring.h>
@@ -25,6 +26,8 @@ __cdecl void *kheap;
 __cdecl int kheap_size;
 __cdecl void *kend;
 
+__cdecl void test_umode();
+
 namespace System::Kernel
 {
 	using System::Memory::Heap;
@@ -42,7 +45,7 @@ namespace System::Kernel
 		idt32_init();
 		Console::Init(stdio);
 		Console::Clear();
-		Serial::Init(Serial::SerialPort::COM1);
+		if (SERIAL) Serial::Init(Serial::SerialPort::COM1);
 		enable_interrupts();
 		ramdisk = (uint8_t*)get_module(0);
 		tar_calc_size();
@@ -51,7 +54,7 @@ namespace System::Kernel
 		page_map_addr_sz((uintptr_t)ramdisk, (uintptr_t)ramdisk, ramdisk_size);
 		Keyboard = new KeyboardDriver();
 		Keyboard->Init();
-		ProcessManager::ToggleLog();
+		if (!PM_LOG) ProcessManager::ToggleLog();
 	}
 	void run(const char* version, const char* name, const char* OSName)
 	{
@@ -74,15 +77,16 @@ namespace System::Kernel
 		
 		System::Userland::Init();
 
-		Console::WriteLine("[%s] User heap: 0x%x", name, System::Userland::UserHeap.GetDataBuffer());
-		Console::WriteLine("[%s] User heap size: %dMB", name, System::Userland::UserHeap.GetSize()/1024/1024);
-		Console::WriteLine("[%s] User heap used: %d bytes", name, System::Userland::UserHeap.GetUsedSize());
-		Console::WriteLine("[%s] User heap free: %dMB", name, System::Userland::UserHeap.GetFreeSize()/1024/1024);
-		Console::WriteLine("[%s] User heap end at: 0x%x", name, System::Userland::UserHeap.GetLastEntryAddress()+ENTRY_SZ);
-
 		uint8_t *test = tar_fopen("./modules/test.mod");
 		ProcessManager::Create(0, 0, [](char *args[], int argv){ while(1); }, PrivilegeLevel::Kernel)->SigRun();
+		ProcessManager::Create(0, 0, [](char *args[], int argv){ while(1); }, PrivilegeLevel::Kernel)->SigKill();
 		Process *proc = (Process*)elf32_load(test, tar_ftell("./modules/test.mod"), 3);
+		Console::WriteLine("[%s] User heap: 0x%x", name, System::Userland::UserHeap.GetDataBuffer());
+		Console::WriteLine("[%s] User heap size: %dMB", name, System::Userland::UserHeap.GetSize()/1024/1024);
+		Console::WriteLine("[%s] User heap used: %dKB", name, System::Userland::UserHeap.GetUsedSize()/1024);
+		Console::WriteLine("[%s] User heap free: %dMB", name, System::Userland::UserHeap.GetFreeSize()/1024/1024);
+		Console::WriteLine("[%s] User heap end at: 0x%x", name, System::Userland::UserHeap.GetLastEntryAddress()+ENTRY_SZ);
+		Console::WriteLine("[%s] Process size: %dMB", name, (sizeof(page_dir_t)/1024)/1024);
 		proc->SigRun();
 		ProcessManager::Init();
 

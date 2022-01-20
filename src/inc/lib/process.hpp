@@ -79,6 +79,7 @@ namespace System::Tasking
 	};
 	class ProcessManager final
 	{
+	friend class Process;
 	private:
 		static vector<Process*> processes_heap;
 		static uint32_t processes_count;

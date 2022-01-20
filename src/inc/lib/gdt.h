@@ -121,11 +121,6 @@ extern tss_entry_struct_t *tss_sect;
 extern tss_entry_struct_t __tss;
 extern void *kstack_top;
 
-static inline void set_ldr()
-{
-	
-}
-
 static inline void set_descriptor(int n, uint32_t base, uint32_t limit, gdt32_entry_access_t access, gdt32_entry_flags_t flags)
 {
 	gdt32_table[n].base_low = base & 0xFFFF;
@@ -315,7 +310,7 @@ static inline void init_entries()
 		.size = GDT32_16BIT,
 		.granularity = GDT32_ALIGN_1B
 	});
-		memset(&__tss, 0, sizeof(tss_entry_struct_t));
+	memset(&__tss, 0, sizeof(tss_entry_struct_t));
 
 	__tss.ss0  = (KERNEL_DATA_INDEX * 8) | 0;
 	__tss.ss1  = (MODULE_DATA_INDEX * 8) | 1;

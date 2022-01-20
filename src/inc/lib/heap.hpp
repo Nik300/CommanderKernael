@@ -35,6 +35,8 @@ namespace System::Memory
 		int max_entries;
 		EntryInfo *info_buffer;
 		void *data_buffer;
+		int	  current_entry;
+		bool  paged;
 	private:
 		static Heap *CurrentHeap;
 	private:
@@ -58,6 +60,6 @@ namespace System::Memory
 		size_t	   GetFreeSize() const;
 		int		   GetMaxEntries() const;
 	public:
-		Heap(void* buffer, size_t total_sz);
+		Heap(void* buffer, size_t total_sz, bool paged = true);
 	};
 }

@@ -76,3 +76,26 @@ __cdecl size_t tar_ftell(const char *path)
 
 	return 0;
 }
+__cdecl void tar_list_all()
+{
+	using namespace System::IO;
+
+    uintptr_t entry = (uintptr_t)ramdisk;
+
+    if (!tar_root_validate()) return;
+
+    for (TAR_DIR dir = (TAR_DIR)entry; strcmp(dir->magic, USTAR_MAGIC) == 0; dir = (TAR_DIR)entry)
+    {
+        
+        if (dir->typeflag == ustar_typeflag::directory)
+        {
+            entry += sizeof(ustar_entry);
+            continue;
+        }
+        size_t sz = stroct(dir->size);
+        Console::WriteLine(dir->name);
+
+        entry += (((sz + 511) / 512) + 1) * 512;
+        
+    }
+}

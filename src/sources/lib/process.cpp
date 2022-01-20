@@ -20,68 +20,7 @@ namespace System::Tasking
 {
 	Process::Process(uint32_t vaddr, uint32_t paddr, ProcessEntry entry, PrivilegeLevel privilege)
 	{
-
-		uint32_t cs;
-		uint32_t ds;
-		
-		switch (privilege)
-		{
-		case PrivilegeLevel::Kernel:
-			cs = get_kernel_code_segment();
-			ds = get_kernel_data_segment();
-			break;
-		case PrivilegeLevel::Module:
-			cs = get_module_code_segment();
-			ds = get_module_data_segment();
-			break;
-		case PrivilegeLevel::Driver:
-			cs = get_driver_code_segment();
-			ds = get_driver_data_segment();
-			break;
-		case PrivilegeLevel::User:
-			cs = get_user_code_segment();
-			ds = get_user_data_segment();
-			break;
-		default:
-			break;
-		}
-
-		regs = (regs32_t) {
-			.ds = ds,
-
-			.edi = 0,
-			.esi = 0,
-			.ebp = 0,
-			.esp = (uint32_t)&stack[sizeof(stack)],
-			.ebx = 0,
-			.edx = 0,
-			.ecx = 0,
-			.eax = 0,
-
-			.identifier =  {
-				.interrupt_number = 0
-			},
-
-			.eip = (uint32_t)entry,
-			.cs  = cs,
-			.eflags = 0x202,
-			.useresp = 0,
-			.ss = ds
-		};
-
-		this->is_alive = true;
-		this->is_running = false;
-		this->is_waiting = false;
-		this->is_sleeping = false;
-
-		this->has_crashed = false;
-		this->has_exited = false;
-
-		this->pid = 0;
-		this->virt_addr = vaddr;
-		this->phys_addr = paddr;
-		this->entry = entry;
-		this->privilege = privilege;
+		Init(vaddr, paddr, entry, privilege);
 	}
 	Process::~Process()
 	{
@@ -142,7 +81,9 @@ namespace System::Tasking
 			.ss = ds
 		};
 
-		this->is_alive = false;
+		if (ProcessManager::log) dprintf("[+] Process %d created\n", this->pid);
+
+		this->is_alive = true;
 		this->is_running = false;
 		this->is_waiting = false;
 		this->is_sleeping = false;
@@ -388,11 +329,8 @@ namespace System::Tasking
 
 			proc = ProcessManager::processes_heap[ProcessManager::current_thread];
 			if (log) dprintf("[ProcessManager] PID: %d\n", proc->GetPID());
-			if (proc->IsAlive())
+			if (proc->IsAlive() && proc->IsRunning() && (proc->regs.cs != 0 && proc->regs.ds != 0 && proc->regs.ss != 0))
 			{
-				if (!proc->IsRunning()) proc->SigRun();
-				page_switch_dir(proc->GetDir());
-				
 				r->eax = proc->regs.eax;
 				r->ebx = proc->regs.ebx;
 				r->ecx = proc->regs.ecx;
@@ -416,8 +354,9 @@ namespace System::Tasking
 				if (log)
 				{
 					dprintf("[ProcessManager] Switching to process %d/%d\n", proc->GetPID()+1, ProcessManager::processes_count);
-					dprintf("[ProcessManager] CS: 0x%x, DS: 0x%x, SS: 0x%x\n", r->cs, r->ds, r->ss);
+					dprintf("[ProcessManager] CS: 0x%x, DS: 0x%x, SS: 0x%x\n", proc->regs.cs, proc->regs.ds, proc->regs.ss);
 				}
+				page_switch_dir(proc->GetDir());
 			}
 			else if (proc->HasExited() || proc->HasCrashed())
 			{
