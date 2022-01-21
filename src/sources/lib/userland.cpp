@@ -11,9 +11,11 @@
 
 System::Memory::Heap System::Userland::UserHeap = System::Memory::Heap(nullptr, 0);
 
+__cdecl void *kernel_pg_end;
+
 void System::Userland::Init()
 {
-	uintptr_t uheap = (uintptr_t)ramdisk + ramdisk_size;
+	uintptr_t uheap = (uintptr_t)kernel_pg_end;
 	
 	size_t memory_sz = get_full_memory_size(multiboot_data);
 	//page_map_addr_sz((uintptr_t)uheap, (uintptr_t)uheap, memory_sz-uheap);

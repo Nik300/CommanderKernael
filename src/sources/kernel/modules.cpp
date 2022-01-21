@@ -27,7 +27,7 @@ __cdecl bool page_modules()
 	void *first_mod = (void*)mods[0];
 	void *last_mod = (void*)mods[mods_count - 1];
 
-	for (uintptr_t i = (uintptr_t)first_mod; i <= mem_align((void*)last_mod) + 0x1000; i += 0x1000)
+	for (uintptr_t i = (uintptr_t)first_mod; i <= mem_align((uintptr_t)last_mod) + 0x1000; i += 0x1000)
 	{
 		page_map_addr(i, i, { present: true, rw: read_write, privilege: supervisor, 0, accessed: false, dirty: true });
 	}

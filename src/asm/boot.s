@@ -6,8 +6,8 @@
 .set CHECKSUM, -(MAGIC + FLAGS) // checksum
 
 .set KSTACK_SZ, 4*(1024*1024)   // kernel stack size 4MB
-.set KHEAP_SZ,  100*(1024*1024) // kernel heap size 100MB
-.set PHEAP_SZ,  4202500			// page heap size (sizeof(page_dir_t))
+.set KHEAP_SZ,  60*(1024*1024) // kernel heap size 100MB
+.set PHEAP_SZ,  40*(1024*1024)  // page heap size (sizeof(page_dir_t))
 .set IDTTB_SZ,	2048			// idttb size (sizeof(idttb_t))
 .set GDTTB_SZ,	2048			// gdttb size (sizeof(gdttb_t))
 .set TSS_SZ,	104				// tss size (sizeof(tss_t))
@@ -30,7 +30,7 @@
 */
 .section .bss
     // define kernel stack
-    .align 4 // align to 16 bytes - so to make sure it doesn't overlap with the multiboot info
+    .align 4096
     .global kstack_top
     .global kheap
 	.global kheap_e

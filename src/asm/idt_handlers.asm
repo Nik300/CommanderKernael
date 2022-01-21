@@ -5,6 +5,7 @@
 %macro isr 1
 	[global isr_%1]
 	isr_%1:
+		; disable paging
 		push dword %1
 		
 		push eax

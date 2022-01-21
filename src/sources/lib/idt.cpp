@@ -199,7 +199,7 @@ bool idt32_init()
 						r->ebx = -1;
 						return;
 					}
-					page_map_addr_dir_sz(r->ecx, r->ecx+proc->GetVirtAddr(), proc->GetDir(), ENTRY_SZ*count, {present: true, rw: read_write, privilege: user, reserved_1: (0), accessed: true, dirty: true});
+					page_map_addr_dir_one_pg_sz(r->ecx, r->ecx+proc->GetVirtAddr(), proc->GetDir(), ENTRY_SZ*count, {present: true, rw: read_write, privilege: user, reserved_1: (0), accessed: true, dirty: true});
 					r->eax = 0;
 					r->ecx += proc->GetVirtAddr();
 					dprintf("[SYSCALL] Allocated %d entries at 0x%x\n", count, r->ecx);

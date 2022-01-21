@@ -49,9 +49,11 @@ namespace System::Kernel
 		enable_interrupts();
 		ramdisk = (uint8_t*)get_module(0);
 		tar_calc_size();
-		page_dir_init();
+		paging_init();
+		page_init_kdir();
 		paging_enable();
-		page_map_addr_sz((uintptr_t)ramdisk, (uintptr_t)ramdisk, ramdisk_size);
+		page_map_addr_one_pg_sz((uintptr_t)ramdisk, (uintptr_t)ramdisk, ramdisk_size);
+		dprintf("ramdisk: 0x%x\n   - size: %d", ramdisk, ramdisk_size);
 		Keyboard = new KeyboardDriver();
 		Keyboard->Init();
 		if (!PM_LOG) ProcessManager::ToggleLog();
@@ -76,17 +78,16 @@ namespace System::Kernel
 		Console::WriteLine("[%s] Installed Memory: %dMB", name, get_full_memory_size(multiboot_data)/1024/1024);
 		
 		System::Userland::Init();
-
-		uint8_t *test = tar_fopen("./modules/test.mod");
-		ProcessManager::Create(0, 0, [](char *args[], int argv){ while(1); }, PrivilegeLevel::Kernel)->SigRun();
-		ProcessManager::Create(0, 0, [](char *args[], int argv){ while(1); }, PrivilegeLevel::Kernel)->SigKill();
-		Process *proc = (Process*)elf32_load(test, tar_ftell("./modules/test.mod"), 3);
 		Console::WriteLine("[%s] User heap: 0x%x", name, System::Userland::UserHeap.GetDataBuffer());
 		Console::WriteLine("[%s] User heap size: %dMB", name, System::Userland::UserHeap.GetSize()/1024/1024);
 		Console::WriteLine("[%s] User heap used: %dKB", name, System::Userland::UserHeap.GetUsedSize()/1024);
 		Console::WriteLine("[%s] User heap free: %dMB", name, System::Userland::UserHeap.GetFreeSize()/1024/1024);
 		Console::WriteLine("[%s] User heap end at: 0x%x", name, System::Userland::UserHeap.GetLastEntryAddress()+ENTRY_SZ);
-		Console::WriteLine("[%s] Process size: %dMB", name, (sizeof(page_dir_t)/1024)/1024);
+		Console::WriteLine("[%s] Process class size: %dKB", name, sizeof(Process)/1024);
+
+		uint8_t *test = tar_fopen("./modules/test.mod");
+		ProcessManager::Create(0, 0, [](char *args[], int argv){ while(1); }, PrivilegeLevel::Kernel)->SigRun();
+		Process *proc = (Process*)elf32_load(test, tar_ftell("./modules/test.mod"), 3);
 		proc->SigRun();
 		ProcessManager::Init();
 

@@ -31,7 +31,6 @@ namespace System::Tasking
 		uint8_t	   stack[64*1024];
 	private:
 		page_dir_t   *dir;
-		uint8_t	  	 pad[4096+sizeof(page_dir_t)];
 		uint32_t   	 virt_addr;
 		uint32_t   	 phys_addr;
 		ProcessEntry entry;

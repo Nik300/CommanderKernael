@@ -90,10 +90,9 @@ namespace System::Tasking
 
 		this->has_crashed = false;
 		this->has_exited = false;
-		
-		this->dir = (page_dir_t*)mem_align((void*)pad);
 
 		this->pid = 0;
+		this->dir = nullptr;
 	}
 	void Process::SigExit()
 	{
@@ -237,7 +236,7 @@ namespace System::Tasking
 
 	Process *ProcessManager::GetFreeProcEntry()
 	{
-		Process *result = (Process*)System::Userland::UserHeap.AllocEntries(PROC_ENTRIES_COUNT);
+		Process *result = (Process*)System::Userland::UserHeap.AllocEntries(1);
 		processes_heap.push_back(result);
 		return (Process*)processes_heap[processes_count];
 	}
@@ -251,9 +250,10 @@ namespace System::Tasking
 
 		if (dir) { proc->dir = dir; goto done; }
 
+		proc->dir = page_create_dir();
 		page_init_dir(proc->dir);
-		
-		page_map_addr_dir_sz((uint32_t)proc, (uint32_t)proc, proc->dir, sizeof(Process), (page_table_entry_t){
+
+		page_map_addr_dir_one_pg_sz((uint32_t)proc, (uint32_t)proc, proc->dir, sizeof(Process), (page_table_entry_t){
 			.present = true,
 			.rw = read_write,
 			.privilege = user,
@@ -261,8 +261,7 @@ namespace System::Tasking
 			.accessed = false,
 			.dirty = false,
 			.reserved_2 = 0,
-			.free = false,
-			.unused = 0,
+			.unused = 0
 		});
 
 		done:
@@ -284,10 +283,8 @@ namespace System::Tasking
 			process->is_running = false;
 			process->is_waiting = false;
 			process->is_sleeping = false;
-			process->dir = NULL;
 			
 			memset(process->stack, 0, sizeof(process->stack));
-			memset(process->pad, 0, sizeof(process->pad));
 
 			System::Userland::UserHeap.FreeEntries(process, PROC_ENTRIES_COUNT);
 
