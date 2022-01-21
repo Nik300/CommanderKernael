@@ -286,6 +286,7 @@ namespace System::Tasking
 			
 			memset(process->stack, 0, sizeof(process->stack));
 
+			page_destroy_dir(process->dir);
 			System::Userland::UserHeap.FreeEntries(process, PROC_ENTRIES_COUNT);
 
 			ProcessManager::processes_used--;

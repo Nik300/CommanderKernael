@@ -19,3 +19,13 @@ int print(const char *str)
 	};
 	return scall(regs);
 }
+void exit()
+{
+	scall_regs_t regs = {
+		.eax = 1,
+		.ebx = 0,
+		.ecx = 0,
+		.edx = 0
+	};
+	scall(regs);
+}

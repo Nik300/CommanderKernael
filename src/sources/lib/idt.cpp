@@ -70,6 +70,8 @@ extern "C" void __idt_flush();
 
 extern "C" void *idt_table;
 
+void end_handle() { while (1); }
+
 const idt32_gate& idt32_set_gate(uint8_t n, uintptr_t handler, uint8_t access_ring, idt32_gate_t gate_type, uint16_t segment)
 {
 	idt32_table[n].offset_low = LOW_16(handler);
@@ -177,8 +179,10 @@ bool idt32_init()
 				page_switch_dir(get_kernel_dir());
 				__reload_regs();
 				ProcessManager::GetCurrentProcess()->SigKill();
-				// call PIT interrupt via asm
-				asm("int $0x20");
+				r->cs = get_kernel_code_segment();
+				r->ds = get_kernel_data_segment();
+				r->ss = get_kernel_data_segment();
+				r->eip = (uintptr_t) end_handle;
 				break;
 			case 2:
 				{
@@ -266,6 +270,9 @@ extern "C" void fault_handler(regs32_t regs)
 	using System::IO::ConsoleColor;
 	using namespace System::IO;
 
+	// send eoi
+	outb(0x20, 0x20);
+
 	//set bsod
 	//Console::Clear(ConsoleColor::White, ConsoleColor::Blue);
 
@@ -288,9 +295,6 @@ extern "C" void fault_handler(regs32_t regs)
 	Console::WriteLine("EIP: 0x%x", regs.eip);
 	Console::WriteLine("USER ESP: 0x%x", regs.useresp);
 
-	// send eoi
-	outb(0x20, 0x20);
-
 	asm volatile ("hlt");
 	for(;;);
 }
@@ -298,17 +302,17 @@ extern "C" void interrupt_handler(regs32_t regs)
 {
 	__tss.esp0 = (uintptr_t)regs.esp;
 
-	if (handler_table[regs.identifier.interrupt_number])
-	{
-		handler_table[regs.identifier.interrupt_number](&regs);
-	}
-
 	// send eoi
 	if (regs.identifier.interrupt_number >= 8)
 	{
 		outb(0xA0, 0x20);
 	}
 	outb(0x20, 0x20);
+
+	if (handler_table[regs.identifier.interrupt_number])
+	{
+		handler_table[regs.identifier.interrupt_number](&regs);
+	}
 
 	gdt32_table[TSS_INDEX].read_write = 0;
 }

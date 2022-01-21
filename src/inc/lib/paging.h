@@ -141,6 +141,7 @@ void page_switch_dir(page_dir_t *dir);
 void page_init_kdir();
 page_dir_t *page_create_dir();
 void page_init_dir (page_dir_t *dir);
+void page_destroy_dir(page_dir_t *dir);
 void paging_init();
 void paging_enable();
 void paging_disable();

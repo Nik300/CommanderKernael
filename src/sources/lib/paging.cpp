@@ -302,6 +302,18 @@ __cdecl void page_init_dir (page_dir_t *dir)
 
 	dprintf("[paging] dir 0x%x initialized.\n", dir);
 }
+__cdecl void page_destroy_dir(page_dir_t *dir)
+{
+	for (int i = 0; i < 1024; i++)
+	{
+		if (dir->entries[i].present)
+		{
+			PagesHeap.FreeEntry((void*)((uintptr_t)dir->entries[i].table_addr << 12));
+		}
+	}
+	PagesHeap.FreeEntries((void*)dir, sizeof(page_dir_t)/ENTRY_SZ);
+	dprintf("[paging] dir 0x%x destroyed.\n", dir);
+}
 __cdecl void paging_init()
 {
 	PagesHeap = Heap(&pheap, pheap_size, true);

@@ -1,4 +1,4 @@
 #pragma once
 
-#define SERIAL 0
+#define SERIAL 1
 #define PM_LOG 0

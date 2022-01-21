@@ -26,8 +26,6 @@ __cdecl void *kheap;
 __cdecl int kheap_size;
 __cdecl void *kend;
 
-__cdecl void test_umode();
-
 namespace System::Kernel
 {
 	using System::Memory::Heap;
@@ -78,6 +76,7 @@ namespace System::Kernel
 		Console::WriteLine("[%s] Installed Memory: %dMB", name, get_full_memory_size(multiboot_data)/1024/1024);
 		
 		System::Userland::Init();
+
 		Console::WriteLine("[%s] User heap: 0x%x", name, System::Userland::UserHeap.GetDataBuffer());
 		Console::WriteLine("[%s] User heap size: %dMB", name, System::Userland::UserHeap.GetSize()/1024/1024);
 		Console::WriteLine("[%s] User heap used: %dKB", name, System::Userland::UserHeap.GetUsedSize()/1024);
