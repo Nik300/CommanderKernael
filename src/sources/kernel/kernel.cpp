@@ -90,12 +90,11 @@ namespace System::Kernel
 		Console::WriteLine("[%s] Process class size: %dKB", name, sizeof(Process)/1024);
 
 		ProcessManager::Create(0, 0, (ProcessEntry)loop, PrivilegeLevel::Kernel)->SigRun();
+		
 		void *kernel_module = tar_fopen("./modules/kern.mod");
 		Process *kernel_proc = (Process*)elf32_load(kernel_module, tar_ftell("./modules/kern.mod"), 0);
 		kernel_proc->SigRun();
-		void *test_module = tar_fopen("./modules/test.mod");
-		Process *test_proc = (Process*)elf32_load(test_module, tar_ftell("./modules/test.mod"), 3);
-		test_proc->SigRun();
+		
 		ProcessManager::Init();
 
 		while (1);

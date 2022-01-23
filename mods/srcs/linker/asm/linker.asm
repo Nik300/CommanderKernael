@@ -7,5 +7,5 @@ _start:
 	call main   ; call main function
 	mov ebx, eax; set exit code
 	mov eax, 0  ; set syscall 0 (exit)
-	int 0x30	; syscall
+	int 0x80	; syscall
 	jmp $		; infinite loop, just in case

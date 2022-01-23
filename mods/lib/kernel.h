@@ -26,7 +26,7 @@ inline int scall(scall_regs_t *regs)
 	asm("mov %0, %%ebx" : : "m"(regs->ebx));
 	asm("mov %0, %%ecx" : : "m"(regs->ecx));
 	asm("mov %0, %%edx" : : "m"(regs->edx));
-	asm("int $0x30 \n\
+	asm("int $0x80 \n\
 		mov %%eax, %0 \n\
 		mov %%ebx, %1 \n\
 		mov %%ecx, %2 \n\

@@ -18,6 +18,8 @@
 #include <kernel.h>
 #include <compile_vars.h>
 
+#define UBASE_VIRTUAL 0xC0000000
+
 void end_handle() { while (1); }
 
 __cdecl void syscall(regs32_t *r)
@@ -61,19 +63,20 @@ __cdecl void syscall(regs32_t *r)
 					r->ebx = -1;
 					return;
 				}
-				page_map_addr_dir_one_pg_sz(r->ecx, r->ecx+proc->GetVirtAddr(), proc->GetDir(), ENTRY_SZ*count, {present: true, rw: read_write, privilege: user, reserved_1: (0), accessed: true, dirty: true});
+				page_map_addr_dir_one_pg_sz(r->ecx, r->ecx+UBASE_VIRTUAL, proc->GetDir(), ENTRY_SZ*count, {present: true, rw: read_write, privilege: user, reserved_1: (0), accessed: true, dirty: true});
 				r->eax = 0;
-				r->ecx += proc->GetVirtAddr();
+				r->ecx += UBASE_VIRTUAL;
 				if (SYS_LOG) dprintf("[SYSCALL] Allocated %d entries at 0x%x\n", count, r->ecx);
 				page_switch_dir(proc->GetDir());
 			}
 			break;
 		case 3:
-		{
-			// vprintf
-			char *fmt = (char *) r->ebx;
-			va_list *args = (va_list *) r->ecx;
-		}
+			{
+				// vprintf
+				char *fmt = (char *) r->ebx;
+				va_list *args = (va_list *) r->ecx;
+				r->eax = printv(fmt, *args);
+			}
 			break;
 		default:
 			r->eax = -1;

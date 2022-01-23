@@ -156,7 +156,7 @@ bool idt32_init()
 	idt32_set_gate(47, (uintptr_t)irq_15,3,idt32_gate_t::INTERRUPT_32, get_kernel_code_segment());
 
 	// install syscall
-	idt32_set_gate(48, (uintptr_t)irq_16, 3, idt32_gate_t::INTERRUPT_32, get_kernel_code_segment());
+	idt32_set_gate(0x80, (uintptr_t)irq_16, 3, idt32_gate_t::INTERRUPT_32, get_kernel_code_segment());
 
 	_idtr->base = (uintptr_t) idt32_table;
     _idtr->limit = (256 * sizeof(idt32_gate));
