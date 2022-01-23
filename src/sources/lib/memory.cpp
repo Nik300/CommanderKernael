@@ -6,6 +6,8 @@
 #include <lib/heap.hpp>
 #include <lib/serial.h>
 
+#include <compile_vars.h>
+
 #define MAGIC 0xC0DE
 
 namespace System::Memory
@@ -121,7 +123,7 @@ extern "C" void *malloc(size_t sz)
 	result->state_flags.dirty = true;
 	result->state_flags.collect = true;
 
-	dprintf("[SYSTEM] Allocated %d bytes at 0x%x\n", sz, result);
+	if (MM_LOG) dprintf("[SYSTEM] Allocated %d bytes at 0x%x\n", sz, result);
 
 	return (void*)(((uintptr_t)result) + sizeof(DataEntry));
 }
@@ -157,12 +159,12 @@ extern "C" void free(void *buff)
 
 	DataEntry *info = (DataEntry*)((uintptr_t)buff-sizeof(DataEntry));
 
-	if (info->magic != MAGIC) { dprintf("[SYSTEM] Free: magic %x is not valid\n", info->magic); return; }
+	if (info->magic != MAGIC) { if (MM_LOG) dprintf("[SYSTEM] Free: magic %x is not valid\n", info->magic); return; }
 
 	info->state_flags.used = false;
 	info->state_flags.collect = false;
 
-	dprintf("[SYSTEM] Freed %d bytes at 0x%x\n", info->sz, info);
+	if (MM_LOG) dprintf("[SYSTEM] Freed %d bytes at 0x%x\n", info->sz, info);
 }
 extern "C" void cfree(void *buff)
 {
@@ -171,14 +173,14 @@ extern "C" void cfree(void *buff)
 
 	DataEntry *info = (DataEntry*)((uintptr_t)buff-sizeof(DataEntry));
 
-	if (info->magic != MAGIC) { dprintf("[SYSTEM] Free: magic %x is not valid\n", info->magic); return; }
+	if (info->magic != MAGIC) { if (MM_LOG) dprintf("[SYSTEM] Free: magic %x is not valid\n", info->magic); return; }
 
 	info->state_flags.used = false;
 	info->state_flags.collect = false;
 
 	memset(buff, 0, info->sz);
 
-	dprintf("[SYSTEM] Freed %d bytes at 0x%x\n", info->sz, info);
+	if (MM_LOG) dprintf("[SYSTEM] Freed %d bytes at 0x%x\n", info->sz, info);
 }
 
 __cdecl void *memcpy(void *dest, const void *src, size_t count)

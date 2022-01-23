@@ -62,14 +62,14 @@ __cdecl uint32_t elf32_load(void *data, size_t size, uint8_t privilege)
 			dprintf("[%s] 	Align: %d\n", "ELF", prog_hdr[i].align);
 			dprintf("[%s] 	File phys: 0x%x\n", "ELF", mem_align((uintptr_t)prog_data));
 
-			page_switch_dir(proc->GetDir());
-			page_map_addr_one_pg_sz((uint32_t)mem_align((uintptr_t)prog_data), prog_hdr[i].vaddr, prog_hdr[i].filesz, {present: true, rw: read_write, privilege: user, reserved_1: (0), accessed: false, dirty: false});
+			page_map_addr_dir_one_pg_sz((uint32_t)mem_align((uintptr_t)prog_data), prog_hdr[i].vaddr, proc->GetDir(), prog_hdr[i].filesz, {present: true, rw: read_write, privilege: user, reserved_1: (0), accessed: false, dirty: false});
 
 			proc->SetVirtAddr(prog_hdr[i].vaddr);
 
+			page_switch_dir(proc->GetDir());
 			memcpy((void*)prog_hdr[i].vaddr, (uint8_t*)data+prog_hdr[i].offset, prog_hdr[i].filesz);
-
 			page_switch_dir(get_kernel_dir());
+
 			prog_data += mem_align(prog_hdr[i].memsz);
 			dprintf("[%s] 	Program header %d loaded.\n", "ELF", i);
 		}

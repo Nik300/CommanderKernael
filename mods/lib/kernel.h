@@ -20,8 +20,16 @@ struct scall_regs_t
 };
 #endif
 
-inline int scall(scall_regs_t regs)
+inline int scall(scall_regs_t *regs)
 {
-	asm volatile ("int $0x30" : : "a"(regs.eax), "b"(regs.ebx), "c"(regs.ecx), "d"(regs.edx));
-	return regs.eax;
+	asm("mov %0, %%eax" : : "m"(regs->eax));
+	asm("mov %0, %%ebx" : : "m"(regs->ebx));
+	asm("mov %0, %%ecx" : : "m"(regs->ecx));
+	asm("mov %0, %%edx" : : "m"(regs->edx));
+	asm("int $0x30 \n\
+		mov %%eax, %0 \n\
+		mov %%ebx, %1 \n\
+		mov %%ecx, %2 \n\
+		mov %%edx, %3" : "=m"(regs->eax), "=m"(regs->ebx), "=m"(regs->ecx), "=m"(regs->edx));
+	return regs->eax;
 }

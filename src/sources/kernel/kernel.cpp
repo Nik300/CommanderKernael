@@ -37,6 +37,11 @@ namespace System::Kernel
 	KeyboardDriver *Keyboard;
 	Process *KernelProc;
 
+	void loop()
+	{
+		while (true);
+	}
+
 	void begin()
 	{
 		KernelHeap = Heap(&kheap, kheap_size);
@@ -51,7 +56,7 @@ namespace System::Kernel
 		page_init_kdir();
 		paging_enable();
 		page_map_addr_one_pg_sz((uintptr_t)ramdisk, (uintptr_t)ramdisk, ramdisk_size);
-		dprintf("ramdisk: 0x%x\n   - size: %d", ramdisk, ramdisk_size);
+		dprintf("ramdisk: 0x%x\n   - size: %d\n", ramdisk, ramdisk_size);
 		Keyboard = new KeyboardDriver();
 		Keyboard->Init();
 		if (!PM_LOG) ProcessManager::ToggleLog();
@@ -84,10 +89,13 @@ namespace System::Kernel
 		Console::WriteLine("[%s] User heap end at: 0x%x", name, System::Userland::UserHeap.GetLastEntryAddress()+ENTRY_SZ);
 		Console::WriteLine("[%s] Process class size: %dKB", name, sizeof(Process)/1024);
 
-		uint8_t *test = tar_fopen("./modules/test.mod");
-		ProcessManager::Create(0, 0, [](char *args[], int argv){ while(1); }, PrivilegeLevel::Kernel)->SigRun();
-		Process *proc = (Process*)elf32_load(test, tar_ftell("./modules/test.mod"), 3);
-		proc->SigRun();
+		ProcessManager::Create(0, 0, (ProcessEntry)loop, PrivilegeLevel::Kernel)->SigRun();
+		void *kernel_module = tar_fopen("./modules/kern.mod");
+		Process *kernel_proc = (Process*)elf32_load(kernel_module, tar_ftell("./modules/kern.mod"), 0);
+		kernel_proc->SigRun();
+		void *test_module = tar_fopen("./modules/test.mod");
+		Process *test_proc = (Process*)elf32_load(test_module, tar_ftell("./modules/test.mod"), 3);
+		test_proc->SigRun();
 		ProcessManager::Init();
 
 		while (1);

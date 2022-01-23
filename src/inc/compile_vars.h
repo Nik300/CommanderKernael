@@ -1,4 +1,7 @@
 #pragma once
 
-#define SERIAL 1
-#define PM_LOG 0
+constexpr bool SERIAL = true;
+constexpr bool PM_LOG = false;
+constexpr bool MM_LOG = false;
+constexpr bool PG_LOG = false;
+constexpr bool SYS_LOG = false;

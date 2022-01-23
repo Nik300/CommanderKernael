@@ -9,7 +9,7 @@
 
 #include <kernel.h>
 
-int print(const char *str)
+inline int print(const char *str)
 {
 	scall_regs_t regs = {
 		.eax = 0,
@@ -17,9 +17,9 @@ int print(const char *str)
 		.ecx = 0,
 		.edx = 0
 	};
-	return scall(regs);
+	return scall(&regs);
 }
-void exit()
+inline void exit()
 {
 	scall_regs_t regs = {
 		.eax = 1,
@@ -27,5 +27,5 @@ void exit()
 		.ecx = 0,
 		.edx = 0
 	};
-	scall(regs);
+	scall(&regs);
 }

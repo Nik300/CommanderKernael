@@ -1,3 +1,7 @@
-extern "C" void _start()
+#include <stdio.h>
+
+void main()
 {
+	print("[Kernel] Loaded kernel module\n");
+	while (1);
 }

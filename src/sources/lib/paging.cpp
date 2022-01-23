@@ -10,6 +10,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <compile_vars.h>
+
 using System::Memory::Heap;
 
 #define TABLE_SZ 4*1024*1024
@@ -76,8 +78,8 @@ __cdecl void page_map_addr(uint32_t phy, uint32_t virt, page_table_entry_t table
 {
 	uint32_t id = virt >> 22;
 	page_table_t *table = (page_table_t*)PagesHeap.AllocEntries(1);
-	dprintf("[paging] mapping 0x%x\n", table);
-	if (table == nullptr) { dprintf("[paging] max pages reached!\n"); return; }
+	if (PG_LOG) dprintf("[paging] mapping addr 0x%x(0x%x) to table 0x%x\n", phy, virt, table);
+	if (table == nullptr) { if (PG_LOG) dprintf("[paging] max pages reached!\n"); return; }
 
 	for (uint32_t i = 0; i < 1024; i++, phy+=0x1000)
 	{
@@ -110,7 +112,8 @@ __cdecl  void page_map_addr_one_pg(uint32_t phy, uint32_t virt, page_table_entry
 	uint32_t table_id = (virt >> 12) & 0x3FF;
 	
 	page_table_t *table = (page_table_t*)(current_dir->entries[id].table_addr << 12);
-	if (table == nullptr) { table = (page_table_t*)PagesHeap.AllocEntries(1); if (table == nullptr) { dprintf("[paging] max entries reached\n"); return; } }
+	if (PG_LOG) dprintf("[paging] mapping addr 0x%x(0x%x) to table 0x%x\n", phy, virt, table);
+	if (table == nullptr) { table = (page_table_t*)PagesHeap.AllocEntries(1); if (table == nullptr) { if (PG_LOG) dprintf("[paging] max entries reached\n"); return; } }
 
 	table->entries[table_id].accessed = table_entry.accessed;
 	table->entries[table_id].dirty = table_entry.dirty;
@@ -140,8 +143,8 @@ __cdecl void page_map_addr_dir(uint32_t phy, uint32_t virt, page_dir_t *dir, pag
 {
 	uint32_t id = virt >> 22;
 	page_table_t *table = (page_table_t*)PagesHeap.AllocEntries(1);
-	dprintf("[paging] mapping 0x%x\n", table);
-	if (table == nullptr) { dprintf("[paging] max pages reached!\n"); return; }
+	if (PG_LOG) dprintf("[paging] mapping addr 0x%x(0x%x) to table 0x%x\n", phy, virt, table);
+	if (table == nullptr) { if (PG_LOG) dprintf("[paging] max pages reached!\n"); return; }
 
 	for (uint32_t i = 0; i < 1024; i++, phy+=0x1000)
 	{
@@ -174,7 +177,8 @@ __cdecl void page_map_addr_dir_one_pg(uint32_t phy, uint32_t virt, page_dir_t *d
 	uint32_t table_id = (virt >> 12) & 0x3FF;
 	
 	page_table_t *table = (page_table_t*)(dir->entries[id].table_addr << 12);
-	if (table == nullptr) { table = (page_table_t*)PagesHeap.AllocEntries(1); if (table == nullptr) { dprintf("[paging] max entries reached\n"); return; } }
+	if (PG_LOG) dprintf("[paging] mapping addr 0x%x(0x%x) to table 0x%x\n", phy, virt, table);
+	if (table == nullptr) { table = (page_table_t*)PagesHeap.AllocEntries(1); if (table == nullptr) { if (PG_LOG) dprintf("[paging] max entries reached\n"); return; } }
 
 	table->entries[table_id].accessed = table_entry.accessed;
 	table->entries[table_id].dirty = table_entry.dirty;
@@ -231,7 +235,7 @@ __cdecl void page_unmap_addr_dir(uint32_t virt, page_dir_t *dir)
 {
 	uint32_t id = virt >> 22;
 	dir->entries[id].present = false;
-	dprintf("[paging] unmapping 0x%x\n", (current_dir->entries[id].table_addr << 12));
+	if (PG_LOG) dprintf("[paging] unmapping 0x%x\n", (current_dir->entries[id].table_addr << 12));
 	PagesHeap.FreeEntry((void*)((uintptr_t)dir->entries[id].table_addr << 12));
 }
 __cdecl void page_unmap_addr_dir_sz(uint32_t virt, page_dir_t *dir, size_t sz)
@@ -278,7 +282,7 @@ __cdecl void page_init_kdir()
 __cdecl page_dir_t *page_create_dir()
 {
 	page_dir_t *dir = (page_dir_t*)PagesHeap.AllocEntries(sizeof(page_dir_t)/ENTRY_SZ);
-	if (dir == nullptr) { dprintf("[paging] max pages reached!\n"); return nullptr; }
+	if (dir == nullptr) { if (PG_LOG) dprintf("[paging] max pages reached!\n"); return nullptr; }
 	memset(dir, 0, sizeof(page_dir_t));
 	return dir;
 }
@@ -300,7 +304,7 @@ __cdecl void page_init_dir (page_dir_t *dir)
 		dir->entries[ind] = kernel_dir->entries[ind];
 	}
 
-	dprintf("[paging] dir 0x%x initialized.\n", dir);
+	if (PG_LOG) dprintf("[paging] dir 0x%x initialized.\n", dir);
 }
 __cdecl void page_destroy_dir(page_dir_t *dir)
 {
@@ -312,7 +316,7 @@ __cdecl void page_destroy_dir(page_dir_t *dir)
 		}
 	}
 	PagesHeap.FreeEntries((void*)dir, sizeof(page_dir_t)/ENTRY_SZ);
-	dprintf("[paging] dir 0x%x destroyed.\n", dir);
+	if (PG_LOG) dprintf("[paging] dir 0x%x destroyed.\n", dir);
 }
 __cdecl void paging_init()
 {
@@ -332,6 +336,6 @@ __cdecl void paging_init()
 }
 __cdecl void paging_enable()
 {
-	page_switch_dir(current_dir);
+	page_switch_dir(kernel_dir);
 	__asm__ __volatile__("sti");
 }

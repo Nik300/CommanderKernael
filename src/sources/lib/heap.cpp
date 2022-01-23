@@ -7,6 +7,7 @@
 #include <lib/process.hpp>
 
 #include <kernel.h>
+#include <compile_vars.h>
 
 using namespace System::Memory;
 
@@ -21,11 +22,12 @@ Heap::Heap(void* buffer, size_t total_sz, bool paged)
 
 void Heap::InitializeBuffer(void *buffer)
 {
-	dprintf("[HEAP] Initializing heap buffer at 0x%x\n", buffer);
+	if (MM_LOG) dprintf("[HEAP] Initializing heap buffer at 0x%x\n", buffer);
 	info_buffer = (EntryInfo*)buffer;
 	if (!paged)
 	{
-		page_map_addr_sz((uintptr_t)info_buffer, (uintptr_t)mem_align((uintptr_t)info_buffer) + 4*1024*1024, (size_t)mem_align((max_entries*sizeof(EntryInfo))), {present: true, rw: read_write, privilege: supervisor, reserved_1: (0), accessed: false, dirty: false});
+		info_buffer = (EntryInfo*)mem_align((uintptr_t)info_buffer);
+		page_map_addr_one_pg_sz((uintptr_t)info_buffer, (uintptr_t)info_buffer, sizeof(EntryInfo)*max_entries);
 	}
 	data_buffer = (void*)mem_align((uintptr_t)(buffer + (sizeof(EntryInfo)*max_entries)));
 }
@@ -38,13 +40,14 @@ void* Heap::AllocEntries(size_t count, uint32_t PID)
 		int s;
 		if (i + count >= max_entries) return nullptr;
 		bool found = true;
-		for (ind = i, s = 0; s < count; s++)
+		for (ind = i, s = 0; s <= count; s++)
 		{
 			if (i+s >= current_entry)
 			{
-				for (int j = 0; j < count-s; j++, current_entry++)
+				for (int j = 0; j <= count-s; j++, current_entry++)
 				{
-					if (!paged) page_map_addr_sz((uintptr_t)data_buffer + (s+i+j)*ENTRY_SZ, (uintptr_t)data_buffer + (s+i+j)*ENTRY_SZ, (size_t)ENTRY_SZ, {present: true, rw: read_write, privilege: supervisor, reserved_1: (0), accessed: false, dirty: false});
+					if (MM_LOG) dprintf("[HEAP] Allocating entry 0x%x\n", data_buffer + ((s+i+j)*ENTRY_SZ));
+					if (!paged) page_map_addr_one_pg((uintptr_t)data_buffer + ((s+i+j)*ENTRY_SZ), (uintptr_t)data_buffer + ((s+i+j)*ENTRY_SZ), {present: true, rw: read_write, privilege: supervisor, reserved_1: (0), accessed: false, dirty: false});
 					info_buffer[s+i+j].used = 0;
 					info_buffer[s+i+j].dirty = 0;
 				}
@@ -53,6 +56,7 @@ void* Heap::AllocEntries(size_t count, uint32_t PID)
 			if (info_buffer[i+s].used) { found = false; break; }
 			if (info_buffer[i+s].dirty) memsetl(data_buffer+(ENTRY_SZ*(i+s)), 0, ENTRY_SZ);
 		}
+		i += s;
 	if (!found) { i++; goto loop; }
 	for (int y = ind, i = 0; i < count; y++, i++) { info_buffer[y].used = true; info_buffer[y].dirty = true; info_buffer[y].AllocPID = PID; }
 	return data_buffer + (ENTRY_SZ*ind);

@@ -11,7 +11,7 @@
 
 #include <kernel.h>
 
-#define PROC_ENTRIES_COUNT (sizeof(Process)/ENTRY_SZ)+1
+#define PROC_ENTRIES_COUNT (sizeof(Process)/ENTRY_SZ)
 
 __cdecl uintptr_t procs_addr;
 __cdecl void *kend;
@@ -81,8 +81,6 @@ namespace System::Tasking
 			.ss = ds
 		};
 
-		if (ProcessManager::log) dprintf("[+] Process %d created\n", this->pid);
-
 		this->is_alive = true;
 		this->is_running = false;
 		this->is_waiting = false;
@@ -96,6 +94,7 @@ namespace System::Tasking
 	}
 	void Process::SigExit()
 	{
+		ProcessManager::Destroy(this);
 		this->is_alive = false;
 		this->is_running = false;
 		this->is_waiting = false;
@@ -147,6 +146,7 @@ namespace System::Tasking
 		this->is_sleeping = false;
 		this->has_crashed = false;
 		this->has_exited = false;
+		dprintf("Process with PID %d started successfully!\n", GetPID());
 	}
 	void Process::SigStop()
 	{
@@ -236,9 +236,11 @@ namespace System::Tasking
 
 	Process *ProcessManager::GetFreeProcEntry()
 	{
-		Process *result = (Process*)System::Userland::UserHeap.AllocEntries(1);
+		Process *result = (Process*)System::Userland::UserHeap.AllocEntries(PROC_ENTRIES_COUNT);
+		page_switch_dir(get_kernel_dir());
+		page_map_addr_one_pg_sz((uintptr_t)result, (uintptr_t)result, PROC_ENTRIES_COUNT);
 		processes_heap.push_back(result);
-		return (Process*)processes_heap[processes_count];
+		return (Process*)result;
 	}
 
 	Process *ProcessManager::Create(uint32_t vaddr, uint32_t paddr, ProcessEntry entry, PrivilegeLevel privilege, page_dir_t *dir)
@@ -248,7 +250,7 @@ namespace System::Tasking
 		proc->Init(vaddr, paddr, entry, privilege);
 		proc->pid = processes_count;
 
-		if (dir) { proc->dir = dir; goto done; }
+		//if (dir) { proc->dir = dir; goto done; }
 
 		proc->dir = page_create_dir();
 		page_init_dir(proc->dir);
@@ -265,8 +267,8 @@ namespace System::Tasking
 		});
 
 		done:
-			if (log) dprintf("[ProcessManager] Process with PID %d created at address 0x%x\n", proc->GetPID(), proc);
-			if (log) dprintf("	- Page Dir: 0x%x\n", proc->GetDir());
+			dprintf("[ProcessManager] Process with PID %d created at address 0x%x\n", proc->GetPID(), proc);
+			dprintf("	- Page Dir: 0x%x\n", proc->GetDir());
 			processes_count++;
 			processes_used++;
 			return proc;
@@ -276,7 +278,7 @@ namespace System::Tasking
 		if (process->IsAlive())
 		{
 			System::Userland::UserHeap.FreeAllProcessEntries(process->GetPID());
-			processes_heap.remove(process->GetPID());
+			processes_heap.remove(process->pid);
 			process->has_crashed = false;
 			process->has_exited = false;
 			process->is_alive = false;
@@ -284,12 +286,11 @@ namespace System::Tasking
 			process->is_waiting = false;
 			process->is_sleeping = false;
 			
-			memset(process->stack, 0, sizeof(process->stack));
+			//memset(process->stack, 0, sizeof(process->stack));
 
 			page_destroy_dir(process->dir);
 			System::Userland::UserHeap.FreeEntries(process, PROC_ENTRIES_COUNT);
 
-			ProcessManager::processes_used--;
 			ProcessManager::processes_count--;
 
 			if (log) dprintf("[ProcessManager] Process with PID %d destroyed!\n", process->GetPID());
@@ -315,18 +316,13 @@ namespace System::Tasking
 		if(started) proc->regs = *r;
 		int i = 0;
 		loop:
-			if (i > ProcessManager::processes_count)
-			{
-				ProcessManager::current_thread = 0;
-				return;
-			}
 			if (++ProcessManager::current_thread >= ProcessManager::processes_count)
 			{
 				ProcessManager::current_thread = 0;
 			}
 
 			proc = ProcessManager::processes_heap[ProcessManager::current_thread];
-			if (log) dprintf("[ProcessManager] PID: %d\n", proc->GetPID());
+			if (log) dprintf("[ProcessManager] current: %d, PID: %d, Address: 0x%x, Alive: %b, Running: %b\n", current_thread, proc->GetPID(), proc, proc->IsAlive(), proc->IsRunning());
 			if (proc->IsAlive() && proc->IsRunning() && (proc->regs.cs != 0 && proc->regs.ds != 0 && proc->regs.ss != 0))
 			{
 				r->eax = proc->regs.eax;
@@ -345,7 +341,7 @@ namespace System::Tasking
 				r->ds = proc->regs.ds;
 
 				r->eflags = proc->regs.eflags;
-				r->ss = proc->regs.ss;
+				r->ss = proc->regs.ds;
 				
 				r->identifier.interrupt_number = proc->regs.identifier.interrupt_number;
 

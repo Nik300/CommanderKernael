@@ -4,7 +4,9 @@
 void main()
 {
 	asm ("xchg %bx, %bx");
-	print("Hello, world!\n");
+	int i = print("Hello, world\n");
+	if (i == 13) print("test\n");
 	exit();
+	print("Hello, world 2!\n");
 	while (1);
 }
